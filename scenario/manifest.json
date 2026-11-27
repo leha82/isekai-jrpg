@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "keyId": "k20261127093323-e4b81bbc",
+  "files": [
+    "00_system.script",
+    "01_quests.script",
+    "02_events.script",
+    "10_ch1_elf_forest.script",
+    "20_ch2_kingdom.script",
+    "30_ch3_demon_castle.script",
+    "90_ending.script"
+  ],
+  "updatedAt": "2026-11-27T09:33:24.088Z"
+}
