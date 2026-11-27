@@ -137,6 +137,10 @@
   .start-btn:hover { background: #1d4ed8; }
   .start-btn.secondary { background: #15803d; margin-top: 10px; }
   .start-btn.secondary:hover { background: #166534; }
+  #ov-auth { margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  #ov-auth .mini-btn { padding: 6px 14px; font-size: 12px; }
+  #ov-auth-status { font-size: 11px; color: #94a3b8; }
+  .mini-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   /* 모바일 & 마우스 겸용 가상 컨트롤러 */
   #virtual-pad {
@@ -198,6 +202,7 @@
     <button class="mini-btn" id="bgm-btn" onclick="toggleAudio()">🔊 소리 ON</button>
     <button class="mini-btn" onclick="manualSave()">💾 저장</button>
     <button class="mini-btn" onclick="manualLoad()">📂 불러오기</button>
+    <button class="mini-btn" id="auth-btn" onclick="toggleLogin()">☁️ 연결 중...</button>
   </div>
 
   <div id="dialog-box" class="ui-box" onclick="advanceDialog()">
@@ -238,6 +243,10 @@
     <p id="ov-desc">평범한 일상을 보내던 당신은 눈을 뜨자마자 낯선 판타지 대륙의 초원에 떨어졌습니다.<br>동료들과 함께 3인 파티를 결성하고 장비를 강화해 마왕성의 진실에 다가가세요.</p>
     <button class="start-btn" id="ov-btn" onclick="startGame()">모험 시작하기</button>
     <button class="start-btn secondary" id="ov-continue" style="display:none;" onclick="continueGame()">📂 이어하기</button>
+    <div id="ov-auth">
+      <button class="mini-btn" id="ov-login-btn" onclick="toggleLogin()" style="display:none;">🔑 Google 로그인</button>
+      <div id="ov-auth-status">☁️ 클라우드 연결 중...</div>
+    </div>
   </div>
 </div>
 </div>
@@ -679,7 +688,7 @@ function checkTileEvent() {
       party[1].unlocked = true;
       SFX.levelup();
       updateHUD(); renderWorld();
-      saveGame(true);
+      saveGame(true, true);
       startDialog([
         { speaker: "엘프 궁수 리아", text: "당신, 이 세계의 마력 파장이 전혀 없는 '이세계인'이군요! 마왕군이 당신 같은 순수한 영혼을 노리고 있습니다." },
         { speaker: "엘프 궁수 리아", text: "혼자서는 위험합니다. 저도 함께 동행하며 북쪽 아르카디아 왕국까지 안내하겠습니다!" },
@@ -705,7 +714,7 @@ function checkTileEvent() {
       party.forEach(m => { m.atk += 4; m.matk += 4; });
       SFX.levelup();
       updateHUD(); renderWorld();
-      saveGame(true);
+      saveGame(true, true);
       startDialog([
         { speaker: "왕국 기사 가렌", text: "리아의 소개로 온 이세계인이군! 나도 마왕 토벌대에 합류해 전위에서 방패가 되어주마!" },
         { speaker: "왕국 기사 가렌", text: "그리고 이것을 받게. 국왕 폐하께서 하사하신 '왕가의 명검'이다. 마왕성의 결계를 가를 수 있을 걸세." },
@@ -1080,7 +1089,7 @@ function showToast(msg, isError = false) {
   t.classList.toggle("error", isError);
   t.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+  toastTimer = setTimeout(() => t.classList.remove("show"), isError ? 4000 : 1800); // 오류는 읽을 시간을 더 준다
 }
 
 function buildSaveData() {
@@ -1099,28 +1108,39 @@ function buildSaveData() {
   };
 }
 
-// 손상되었거나 버전이 다른 세이브는 null을 반환한다.
+// 손상되었거나 버전이 다른 세이브는 null을 반환한다. (로컬·클라우드 공용)
+function validateSave(d) {
+  if (!d || d.version !== SAVE_VERSION || !d.player || !Array.isArray(d.party)) return null;
+  return d;
+}
+
 function readSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
-    const d = JSON.parse(raw);
-    if (!d || d.version !== SAVE_VERSION || !d.player || !Array.isArray(d.party)) return null;
-    return d;
+    return validateSave(JSON.parse(raw));
   } catch (e) {
     return null;
   }
 }
 
-function saveGame(isAuto = false) {
+function writeLocalSave(data) {
+  localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+}
+
+// toCloud: 로그인 상태라면 클라우드에도 저장 (수동 저장·스토리 진행 시점만 사용 — Firestore 무료 쓰기 한도 절약)
+function saveGame(isAuto = false, toCloud = false) {
+  const data = buildSaveData();
+  let ok = true;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(buildSaveData()));
+    writeLocalSave(data);
     showToast(isAuto ? "💾 자동 저장 완료!" : "💾 저장 완료!");
-    return true;
   } catch (e) {
+    ok = false;
     showToast("⚠️ 저장 실패 (브라우저 저장소를 사용할 수 없습니다)", true);
-    return false;
   }
+  if (toCloud) cloudSave(data);
+  return ok;
 }
 
 function applySaveData(d) {
@@ -1144,33 +1164,47 @@ function applySaveData(d) {
 
 function manualSave() {
   if (gameState !== "WORLD") { showToast("지금은 저장할 수 없습니다. (필드에서만 가능)", true); return; }
-  saveGame(false);
+  saveGame(false, true);
 }
 
-function manualLoad() {
+// 불러오기 대상 선택 시 클라우드 세이브를 결과에 반영한다. 로컬에도 복사해 두어 오프라인에서도 이어할 수 있게 한다.
+function applyPickedSave(pick) {
+  applySaveData(pick.data);
+  if (pick.source === "cloud") { try { writeLocalSave(pick.data); } catch (e) {} }
+}
+
+async function manualLoad() {
   if (gameState !== "WORLD") { showToast("지금은 불러올 수 없습니다. (필드에서만 가능)", true); return; }
-  const d = readSave();
-  if (!d) { showToast("저장된 데이터가 없습니다.", true); return; }
-  if (!confirm(`Lv.${d.player.lv} 저장 데이터를 불러올까요?\n현재 진행 상황은 사라집니다.`)) return;
-  applySaveData(d);
+  if (cloudBusy) return;
+  cloudBusy = true;
+  try { await refreshCloudCache(); } finally { cloudBusy = false; }
+  const pick = latestSave();
+  if (!pick) { showToast("저장된 데이터가 없습니다.", true); return; }
+  if (!confirm(`Lv.${pick.data.player.lv} 저장 데이터를 불러올까요? (${saveSourceLabel(pick.source)})\n현재 진행 상황은 사라집니다.`)) return;
+  if (gameState !== "WORLD") return;
+  applyPickedSave(pick);
   updateHUD();
   renderWorld();
   SFX.coin();
-  showToast(`📂 불러오기 완료! (Lv.${player.lv})`);
+  showToast(`📂 불러오기 완료! (Lv.${player.lv}, ${saveSourceLabel(pick.source)})`);
 }
 
-function continueGame() {
-  const d = readSave();
-  if (!d) { refreshTitleContinue(); showToast("저장 데이터를 읽을 수 없습니다.", true); return; }
-  applySaveData(d);
+async function continueGame() {
+  initAudio(); // await 이후에는 사용자 입력으로 인정되지 않으므로 먼저 오디오를 깨운다
+  if (cloudBusy) return;
+  cloudBusy = true;
+  try { await refreshCloudCache(); } finally { cloudBusy = false; }
+  const pick = latestSave();
+  if (!pick) { refreshTitleContinue(); showToast("저장 데이터를 읽을 수 없습니다.", true); return; }
+  applyPickedSave(pick);
   startGame(true);
 }
 
 function refreshTitleContinue() {
   const btn = document.getElementById("ov-continue");
-  const d = readSave();
-  if (d) {
-    btn.innerText = `📂 이어하기 (Lv.${d.player.lv})`;
+  const pick = latestSave();
+  if (pick) {
+    btn.innerText = `📂 이어하기 (Lv.${pick.data.player.lv} · ${saveSourceLabel(pick.source)})`;
     btn.style.display = "inline-block";
   } else {
     btn.style.display = "none";
@@ -1178,7 +1212,151 @@ function refreshTitleContinue() {
 }
 
 // ==========================================
-// 11. 반응형 스케일링 (내부 해상도 640x480 유지)
+// 11. 클라우드 세이브 (Google 로그인 + Firestore)
+//     Firebase SDK는 맨 아래 module 스크립트에서 불러와 window.cloud 로 노출된다.
+//     SDK를 불러오지 못해도(오프라인 등) 로컬 세이브만으로 게임은 정상 동작한다.
+// ==========================================
+let cloudUser = null;       // 로그인한 Firebase 사용자
+let cloudSaveCache = null;  // 마지막으로 확인한 클라우드 세이브
+let cloudBusy = false;
+
+function cloudReady() { return !!(window.cloud && cloudUser); }
+function saveSourceLabel(source) { return source === "cloud" ? "☁️ 클라우드" : "💾 이 기기"; }
+
+// 로컬과 클라우드 중 savedAt이 더 최근인 세이브를 고른다.
+function latestSave() {
+  const local = readSave();
+  const remote = cloudReady() ? cloudSaveCache : null;
+  if (local && remote) {
+    return (Date.parse(remote.savedAt) || 0) > (Date.parse(local.savedAt) || 0)
+      ? { data: remote, source: "cloud" } : { data: local, source: "local" };
+  }
+  if (remote) return { data: remote, source: "cloud" };
+  if (local) return { data: local, source: "local" };
+  return null;
+}
+
+async function refreshCloudCache() {
+  if (!cloudReady()) return;
+  try {
+    cloudSaveCache = validateSave(await window.cloud.load());
+  } catch (e) {
+    showToast("☁️ 클라우드 연결 실패 — 이 기기의 세이브를 사용합니다.", true);
+  }
+}
+
+async function cloudSave(data) {
+  if (!cloudReady()) return;
+  try {
+    await window.cloud.save(data);
+    cloudSaveCache = data;
+    showToast("☁️ 클라우드 저장 완료!");
+  } catch (e) {
+    showToast("☁️ 클라우드 저장 실패 (이 기기에는 저장됨)", true);
+  }
+}
+
+// 로그인 직후: 클라우드 세이브를 확인하고, 클라우드가 비어 있으면 이 기기의 세이브를 올린다.
+async function syncOnLogin() {
+  try {
+    const remote = validateSave(await window.cloud.load());
+    const local = readSave();
+    if (!remote && local) {
+      await window.cloud.save(local);
+      cloudSaveCache = local;
+      showToast("☁️ 이 기기의 세이브를 클라우드에 올렸습니다.");
+    } else {
+      cloudSaveCache = remote;
+      if (remote && gameState !== "TITLE") {
+        showToast(`☁️ 클라우드 세이브(Lv.${remote.player.lv})가 있습니다. 📂 불러오기로 가져올 수 있습니다.`);
+      }
+    }
+  } catch (e) {
+    showToast("☁️ 클라우드 세이브를 확인하지 못했습니다.", true);
+  }
+  refreshTitleContinue();
+}
+
+// module 스크립트의 onAuthStateChanged 에서 호출된다.
+function onCloudAuthChanged(user) {
+  cloudUser = user;
+  cloudSaveCache = null;
+  updateAuthUI();
+  refreshTitleContinue();
+  if (user) syncOnLogin();
+}
+
+function updateAuthUI() {
+  const btn = document.getElementById("auth-btn");
+  const ovBtn = document.getElementById("ov-login-btn");
+  const status = document.getElementById("ov-auth-status");
+  if (!window.cloud) {
+    btn.innerText = "☁️ 사용 불가";
+    btn.disabled = true;
+    ovBtn.style.display = "none";
+    status.innerText = "클라우드 세이브에 연결할 수 없습니다. 이 기기에만 저장됩니다.";
+    return;
+  }
+  if (location.protocol === "file:") {
+    // Firebase 로그인은 http(s) 페이지에서만 동작한다.
+    btn.innerText = "☁️ 사용 불가";
+    btn.disabled = true;
+    ovBtn.style.display = "none";
+    status.innerText = "파일로 직접 열면 로그인할 수 없습니다. 로컬 서버(VS Code F5 → localhost)나 배포 사이트에서 접속하세요.";
+    return;
+  }
+  btn.disabled = false;
+  ovBtn.style.display = "inline-block";
+  if (cloudUser) {
+    const name = cloudUser.displayName || cloudUser.email || "사용자";
+    btn.innerText = "🔓 로그아웃";
+    ovBtn.innerText = "🔓 로그아웃";
+    status.innerText = `☁️ ${name} 님으로 로그인됨 — 클라우드에도 저장됩니다.`;
+  } else {
+    btn.innerText = "🔑 로그인";
+    ovBtn.innerText = "🔑 Google 로그인";
+    status.innerText = "로그인하면 다른 기기에서도 이어할 수 있습니다. (선택 사항)";
+  }
+}
+
+async function toggleLogin() {
+  initAudio();
+  if (!window.cloud) { showToast("클라우드 세이브를 사용할 수 없습니다.", true); return; }
+  if (cloudBusy) return;
+  if (cloudUser) {
+    if (!confirm("로그아웃할까요?\n로그아웃하면 이 기기에만 저장됩니다.")) return;
+    try { await window.cloud.signOut(); showToast("로그아웃했습니다."); }
+    catch (e) { showToast("로그아웃 실패", true); }
+    return;
+  }
+  cloudBusy = true;
+  try {
+    await window.cloud.signIn(); // 팝업은 클릭 직후 동기적으로 열려야 하므로 앞에 await를 두지 않는다
+    showToast("🔑 로그인 완료!");
+  } catch (e) {
+    const code = (e && e.code) || "";
+    console.error("[로그인 실패]", code, e); // F12 콘솔에서 상세 원인 확인용
+    const messages = {
+      "auth/popup-closed-by-user": "로그인 창이 닫혔습니다. 다시 시도해 주세요.",
+      "auth/cancelled-popup-request": "로그인을 취소했습니다.",
+      "auth/popup-blocked": "팝업이 차단되었습니다. 주소창의 팝업 차단 아이콘에서 허용해 주세요.",
+      "auth/unauthorized-domain": `승인되지 않은 주소(${location.hostname})입니다. Firebase 승인된 도메인에 추가하거나 localhost로 접속하세요.`,
+      "auth/operation-not-supported-in-this-environment": "이 환경에서는 로그인할 수 없습니다. http://localhost 또는 배포 사이트에서 접속하세요.",
+      "auth/operation-not-allowed": "Firebase에서 Google 로그인이 꺼져 있습니다.",
+      "auth/network-request-failed": "네트워크 오류로 로그인하지 못했습니다.",
+      "auth/web-storage-unsupported": "브라우저 저장소(쿠키)가 차단되어 로그인할 수 없습니다."
+    };
+    showToast(messages[code] || `로그인 실패 (${code || "알 수 없는 오류"})`, true);
+  } finally {
+    cloudBusy = false;
+  }
+}
+
+// Firebase SDK 로드에 실패하면 module 스크립트가 실행되지 않는다. load 시점에 확인해 UI를 '사용 불가'로 바꾼다.
+window.addEventListener("load", () => { if (!window.cloud) updateAuthUI(); });
+
+// ==========================================
+// 12. 반응형 스케일링 (내부 해상도 640x480 유지)
 // ==========================================
 const GAME_W = 648, GAME_H = 488; // 캔버스 640x480 + 테두리 4px*2
 function fitGameToScreen() {
@@ -1192,6 +1370,44 @@ function fitGameToScreen() {
 window.addEventListener("resize", fitGameToScreen);
 fitGameToScreen();
 refreshTitleContinue();
+</script>
+
+<!-- 13. Firebase SDK (클라우드 세이브). 설정값은 공개 식별자이며, 접근 제어는 Firestore 보안 규칙(firestore.rules)이 담당한다. -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD9zsNGKyhxM5e4k4LQrH7jfyrW726ko_0",
+  authDomain: "isekai-jrpg.firebaseapp.com",
+  projectId: "isekai-jrpg",
+  storageBucket: "isekai-jrpg.firebasestorage.app",
+  messagingSenderId: "354478953656",
+  appId: "1:354478953656:web:ad385c633ac5a1d344104d"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const saveRef = () => doc(db, "saves", auth.currentUser.uid);
+
+window.cloud = {
+  signIn() {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    return signInWithPopup(auth, provider);
+  },
+  signOut() { return signOut(auth); },
+  async load() {
+    const snap = await getDoc(saveRef());
+    return snap.exists() ? snap.data() : null;
+  },
+  save(data) { return setDoc(saveRef(), data); }
+};
+
+updateAuthUI();
+onAuthStateChanged(auth, (user) => onCloudAuthChanged(user));
 </script>
 </body>
 </html>

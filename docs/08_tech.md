@@ -5,8 +5,8 @@
 - HTML5 / CSS3 / Vanilla JavaScript (ES6+), 단일 파일 `index.html`
 - 그래픽: `<canvas>` 2D에 문자 배열 도트를 `fillRect`로 그림 (`image-rendering: pixelated`)
 - 사운드: Web Audio API Oscillator (square / triangle / sawtooth / sine)
-- 저장: `localStorage`
-- 외부 라이브러리·에셋·빌드 도구 없음
+- 저장: `localStorage` + (선택) Firebase Firestore 클라우드 세이브
+- 외부 에셋·빌드 도구 없음. **예외: Firebase JS SDK 13.4.0**을 gstatic CDN에서 ES module로 불러온다. 이 SDK는 로그인·클라우드 저장에만 쓰이며, 불러오지 못해도 게임은 동작한다.
 
 ## 실행 & 디버깅
 
@@ -44,8 +44,17 @@
 | 7 | 스토리 & 이벤트 | `startDialog`, `advanceDialog`, `startGame`, `checkTileEvent` |
 | 8 | 턴제 전투 | `triggerRandomEncounter`, `startBattle`, `nextAllyTurn`, `execSkill`, `enemyTurn`, `checkLevelUp`, `endBattle`, `triggerEnding` |
 | 9 | 입력 처리 | `movePlayer`, `handleActionKey`, keydown 핸들러, 버튼 포커스 방지 |
-| 10 | 세이브/불러오기 | `SAVE_KEY`, `saveGame`, `readSave`, `applySaveData`, `manualSave`, `manualLoad`, `continueGame`, `showToast` |
-| 11 | 반응형 스케일링 | `fitGameToScreen` |
+| 10 | 세이브/불러오기 | `SAVE_KEY`, `saveGame(isAuto, toCloud)`, `validateSave`, `readSave`, `writeLocalSave`, `applySaveData`, `manualSave`, `manualLoad`, `continueGame`, `refreshTitleContinue`, `showToast` |
+| 11 | 클라우드 세이브 | `cloudUser`, `cloudSaveCache`, `latestSave`, `refreshCloudCache`, `cloudSave`, `syncOnLogin`, `onCloudAuthChanged`, `updateAuthUI`, `toggleLogin` |
+| 12 | 반응형 스케일링 | `fitGameToScreen` |
+| 13 | Firebase SDK (`<script type="module">`) | `firebaseConfig`, `window.cloud = { signIn, signOut, load, save }` |
+
+### 클라우드 세이브 연결 구조
+
+- 게임 본체(일반 `<script>`)는 Firebase를 직접 import하지 않는다. 13번 module 스크립트가 SDK를 불러와 `window.cloud` 객체만 노출하고, `onAuthStateChanged` → `onCloudAuthChanged(user)`로 게임에 로그인 상태를 알린다.
+- module 스크립트는 지연 실행되므로 본체 함수가 모두 정의된 다음에 실행된다. SDK import가 실패하면 module 전체가 실행되지 않고, `load` 이벤트에서 `window.cloud`가 없음을 확인해 UI를 '사용 불가'로 바꾼다.
+- `firebaseConfig`(apiKey 포함)는 공개되는 식별자라 비밀이 아니다. 접근 제어는 [`firestore.rules`](../firestore.rules)가 담당한다. 규칙을 바꾸면 Firebase 콘솔 → Firestore → 규칙에 **다시 게시**해야 반영된다.
+- Firestore 문서 `saves/{uid}`의 내용은 아래 세이브 데이터 포맷과 같다. 보안 규칙이 최상위 키를 `version, savedAt, player, inventory, party`로 제한하므로, **최상위 키를 추가하면 규칙도 함께 수정**해야 한다.
 
 ## 상태 머신 (`gameState`)
 

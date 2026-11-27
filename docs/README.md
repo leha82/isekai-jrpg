@@ -16,6 +16,7 @@
 | [07_systems.md](07_systems.md) | 성장(레벨), 경제, 상점, 인벤토리, 세이브/불러오기 |
 | [08_tech.md](08_tech.md) | 코드 구조, 상태 머신, 세이브 데이터 포맷, 그래픽·사운드 엔진 |
 | [09_roadmap.md](09_roadmap.md) | 구현 현황, 다음 마일스톤, 아이디어 백로그 |
+| [10_firebase_setup.md](10_firebase_setup.md) | Firebase 프로젝트 설정 가이드 (클라우드 세이브용) |
 | [reference/arcadia_isekai_jrpg_spec.md](reference/arcadia_isekai_jrpg_spec.md) | 최초 통합 기획서 원본 (수정하지 않고 보관) |
 
 ## 운영 규칙
@@ -25,3 +26,4 @@
 3. **새 기능 작업 순서:** 해당 문서에 `🔲 계획`으로 먼저 적음 → 코드 구현 → `✅ 구현됨`으로 변경 → [09_roadmap.md](09_roadmap.md) 갱신.
 4. **원본 기획서(`reference/`)는 수정하지 않는다.** 바뀐 결정은 주제별 문서에 기록한다.
 5. 새 주제가 생기면 `10_xxx.md` 식으로 번호를 이어 붙이고 위 표에 추가한다.
+6. 요구사항이 어느 문서에 해당하는지는 루트 [CLAUDE.md](../CLAUDE.md)의 "요구사항 → 문서 매핑" 표를 따른다. AI 에이전트는 요청 하나마다 코드와 문서를 함께 수정한다.

@@ -17,6 +17,11 @@
   - 엔딩 시 `storyFlag = 3`
   - 버그 수정: 엔딩 오버레이 뒤에서 이동이 되던 문제, Space 이중 입력, 상점 제목이 바뀌던 문제, `alert()` 팝업을 게임 내 대화창·토스트로 교체
 
+- **[2026-11-27] 클라우드 세이브**
+  - Firebase Google 로그인(선택) + Firestore `saves/{uid}` 저장, 최근 `savedAt` 우선 불러오기
+  - 로그인 직후 이 기기 세이브 업로드, SDK 로드 실패 시 로컬 전용으로 동작
+  - `firestore.rules` 보안 규칙 파일 추가
+
 ## 다음 마일스톤 후보 (우선순위 순)
 
 | # | 항목 | 관련 문서 | 상태 |
@@ -26,6 +31,9 @@
 | 3 | 독 등 상태이상, 적 속성 약점 | [05_battle.md](05_battle.md) | 🔲 |
 | 4 | 드워프 산맥 지역 + 드워프 장인 NPC | [02_world.md](02_world.md), [04_characters.md](04_characters.md) | 🔲 |
 | 5 | 세이브 슬롯 다중화 | [07_systems.md](07_systems.md) | 🔲 |
+| 5-1 | 기기 간 세이브 이동: Google 로그인 클라우드 세이브(B안 채택) | [07_systems.md](07_systems.md#클라우드-세이브--로그인-) | ✅ 2026-11-27 |
+| 5-2 | Firebase 프로젝트 콘솔 설정 (프로젝트 `isekai-jrpg`) | [10_firebase_setup.md](10_firebase_setup.md) | ✅ 보안 규칙 게시·실제 로그인 확인 필요 |
+| 5-3 | 세이브 코드 내보내기/가져오기 (오프라인 백업) | [07_systems.md](07_systems.md) | 💡 |
 | 6 | 맵 스크롤 (20x15보다 큰 월드) | [02_world.md](02_world.md) | 💡 |
 | 7 | 코드 분리 (`js/`, `css/`) — 단일 파일 원칙과 충돌하므로 결정 필요 | [01_concept.md](01_concept.md) | 💡 |
 
