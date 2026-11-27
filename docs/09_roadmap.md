@@ -69,7 +69,7 @@
 | 4 | 그롬 드워프 마을 + 장비 강화 상한 | [02_world.md](02_world.md) | 🔲 |
 | 5 | 세이브 슬롯 다중화 (자동 1 + 수동 5) | [07_systems.md](07_systems.md) | ✅ 2026-11-27 |
 | 5-2 | 세이브 코드 내보내기 | [07_systems.md](07_systems.md) | 💡 |
-| 5-3 | 최신 `firestore.rules` 게시 (세이브 슬롯 `saves/{uid}/slots`) | [10_firebase_setup.md](10_firebase_setup.md) | 🔲 사용자 진행 |
+| 5-3 | 최신 `firestore.rules` 게시 (세이브 슬롯 `saves/{uid}/slots`) | [10_firebase_setup.md](10_firebase_setup.md) | ✅ 2026-11-27 |
 | 5-1 | Google 로그인 클라우드 세이브 | [07_systems.md](07_systems.md) | ✅ 2026-11-27 |
 | 6 | 맵 스크롤·다양한 크기의 맵 | [02_world.md](02_world.md) | ✅ 2026-11-27 |
 | 7 | 코드 분리 + 암호화 시나리오 + 관리자 페이지 | [08_tech.md](08_tech.md), [11_scenario.md](11_scenario.md) | ✅ 2026-11-27 |

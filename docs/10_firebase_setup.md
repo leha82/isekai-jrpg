@@ -116,7 +116,7 @@ const firebaseConfig = {
 - [x] 승인된 도메인에 `leha82.github.io` 추가
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
 - [x] 보안 규칙 게시
-- [ ] 세이브 슬롯 규칙(`saves/{uid}/slots`) 재게시 (2026-11-27)
+- [x] 세이브 슬롯 규칙(`saves/{uid}/slots`) 재게시 (2026-11-27, 사용자 확인)
 - [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
 - [x] (시나리오) `firestore.rules` 게시 (2026-11-27 확인)
 - [x] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드 (커밋 fb552c4)
