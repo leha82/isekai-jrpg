@@ -159,6 +159,29 @@ function renderRepoInfo() {
   $("repo-info").textContent = `현재 키: ${m ? m.keyId : "없음"}\n마지막 저장: ${m ? new Date(m.updatedAt).toLocaleString("ko-KR") : "-"}`;
 }
 
+// ---------- 이전 키 삭제 (현재 manifest 키만 남김) ----------
+// 저장 직후에는 GitHub Pages 반영(1~2분) 동안 이전 암호문이 풀리도록 직전 키를 남겨 둔다.
+// 배포가 끝난 뒤 이 버튼으로 정리한다.
+async function pruneOldKeys() {
+  if (S.busy) return;
+  const keyId = SC.manifest && SC.manifest.keyId;
+  if (!keyId) { setStatus("저장소에서 현재 키를 아직 불러오지 않았습니다. ↻ 다시 불러오기 후 시도하세요.", "error"); return; }
+  if (!confirm(`현재 키(${keyId})만 남기고 Firebase 의 이전 복호화 키를 모두 삭제합니다.\n마지막 저장 후 GitHub Pages 반영(1~2분)이 끝난 뒤에 하세요.\n\n계속할까요?`)) return;
+  setBusy(true);
+  try {
+    // 저장소의 manifest 가 정말 이 키인지 다시 확인 (다른 곳에서 저장했을 수 있음)
+    const live = JSON.parse(await backend.github.readText(MANIFEST_PATH) || "null");
+    if (!live || live.keyId !== keyId) throw new Error(`저장소의 현재 키(${live ? live.keyId : "없음"})가 불러온 키와 다릅니다. 다시 불러온 뒤 시도하세요.`);
+    const n = await backend.pruneKeys(0, [keyId]);
+    setStatus(`✅ 이전 키 ${n}개 삭제 — 남은 키: ${keyId}`, "ok");
+  } catch (e) {
+    console.error(e);
+    setStatus(`이전 키 삭제 실패: ${e.message}`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
 // ---------- 저장 (새 키로 전체 재암호화 → GitHub 커밋) ----------
 export async function saveScenario() {
   if (S.busy) return;
@@ -282,6 +305,7 @@ export function initScenarioTab() {
   $("btn-export").onclick = () => { if (SC.current) download(SC.current, SC.files.get(SC.current).text); };
   $("btn-export-all").onclick = exportAll;
   $("btn-reload").onclick = () => loadScenarioFromRepo(false);
+  $("btn-prune-keys").onclick = pruneOldKeys;
   $("btn-check").onclick = () => { const scn = validateAll(); setStatus(`검사 완료 — 오류 ${scn.errors.length}건, 경고 ${scn.warnings.length}건`, scn.errors.length ? "error" : "ok"); };
   $("btn-save").onclick = saveScenario;
   $("help-body").innerHTML = `

@@ -18,7 +18,7 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 |---|---|---|
 | `scenario-src/` | 평문 스크립트 원본 (작업용) | ❌ `.gitignore` 로 제외 |
 | `scenario/` | 암호화본 + `manifest.json` (파일 목록·현재 keyId) | ✅ 암호문만 |
-| Firebase `scriptKeys` | 키 (저장할 때마다 새 키, 최근 3개만 보관) | — |
+| Firebase `scriptKeys` | 키 (저장할 때마다 새 키, 최근 3개만 보관 — `🗑 이전 키 삭제` 로 현재 키만 남길 수 있음) | — |
 | `admin.html` | 스크립트 편집기 (마스터 전용) | 페이지 파일은 공개, 기능은 마스터만 |
 
 ### 보안 수준 (꼭 알아둘 것)
@@ -139,6 +139,8 @@ id 목록 — 파티·스프라이트: [04_characters.md](04_characters.md), 적
 3. **모든** 스크립트를 새 키로 암호화 (파일 이름을 인증 데이터로 묶음)
 4. `scenario/*.enc.json` + `manifest.json` 을 커밋 1개로 GitHub `main` 에 푸시 (지운 파일은 삭제)
 5. 최근 3개 + 직전 키만 남기고 오래된 키 삭제 (GitHub Pages 반영 지연 1~2분 동안 이전 파일도 풀리도록)
+
+반영이 끝난 뒤 이전 키까지 지우려면 사이드바 `저장소` 의 **🗑 이전 키 삭제** 를 누른다. 저장소 `manifest.json` 의 현재 키가 불러온 키와 같은지 확인한 뒤, 그 키 하나만 남기고 `scriptKeys` 를 모두 삭제한다 (관리자 권한 필요).
 
 ### GitHub 토큰 (최초 1회)
 GitHub → Settings → Developer settings → **Fine-grained personal access tokens** → 저장소 `isekai-jrpg` 만 선택 → Repository permissions **Contents: Read and write** → 관리자 페이지에 붙여 넣기.
