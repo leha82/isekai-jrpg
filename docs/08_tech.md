@@ -28,11 +28,11 @@
 index.html / admin.html
 css/game.css · admin.css
 js/config.js            Firebase 설정, MASTER_EMAIL, GitHub 저장소, 폴더, DATA_FILES
-js/core/                assets.js (데이터·이미지 로더, 시트 좌표) · state.js (상태·5스탯 계산·장비·파티 순서·리더·레벨업 — 관리자 페이지도 사용) · audio.js (MP3 BGM/SFX, 볼륨·채널별 끄기) · ui.js (토스트·알림/확인 창·대화창·창·이름 입력) · display.js (화면 모드·크기·세로/가로 해상도·가상 패드 위치)
+js/core/                assets.js (데이터·이미지 로더, 시트 좌표) · state.js (상태·5스탯 계산·장비·파티 순서·리더·레벨업 — 관리자 페이지도 사용) · audio.js (MP3 BGM/SFX, 볼륨·채널별 끄기) · ui.js (토스트·알림/확인 창·설명 팝업 showPop·대화창·창·이름 입력) · display.js (화면 모드·크기·세로/가로 해상도·가상 패드 위치)
 js/ai/ai-client.js      AI 연결 (Claude SDK·Gemini·ChatGPT), AI 연결 메뉴 — [14_ai.md](14_ai.md)
 js/scenario/            crypto.js (AES-GCM) · format.js (파서·검사기) · context.js (검사용 데이터 목록) · runtime.js (로드·장면 실행·퀘스트·엔딩)
 js/world/world.js       맵 렌더링(카메라·타일 애니메이션)·이동·상호작용·워프·인카운트
-js/systems/             hud.js (HUD·메뉴: 파티·가방·장비·스킬·퀘스트·설정) · worldmap.js (지도 탭: 월드 지도·현재 지역) · shop.js · battle.js (전투 로직·피해 공식) · battle-view.js (전투 캔버스 연출·배치) · save.js (슬롯·자동 저장·클라우드 동기화·저장 창·로그인·플레이어 ID)
+js/systems/             hud.js (HUD·메뉴: 파티(순서 변경 모드)·가방(격자·더블클릭 사용)·장비·스킬(대상 패널)·퀘스트·설정, 능력치 설명 팝업) · worldmap.js (지도 탭: 지도 아이템별 월드 지도·현재 지역) · shop.js · battle.js (전투 로직·피해 공식) · battle-view.js (전투 캔버스 연출·배치) · save.js (슬롯·자동 저장·클라우드 동기화·저장 창·로그인·플레이어 ID)
 js/game/                input.js (키보드·단축키·가상 패드) · main.js (부팅·타이틀·새 게임)
 js/firebase/game-cloud.js   게임용 Firebase module → window.cloud
 js/admin/               admin.js (진입) · core.js (백엔드·공용) · tab-scenario / tab-events / tab-maps / tab-actors / tab-battle / tab-resources / tab-admins
@@ -67,9 +67,9 @@ firestore.rules         Firestore 보안 규칙 원본 (콘솔에 게시해야 �
 | `TITLE` | 타이틀 | 버튼 |
 | `WORLD` | 필드 | 이동·조사·단축키 |
 | `DIALOG` | 대화창 | Space/Enter/클릭 (타자 중이면 한 번에 표시) |
-| `MODAL` | 메뉴·상점·저장·설정·AI 창. 열기 전 상태를 `Modal.prev` 에 기억했다가 닫을 때 되돌린다 (타이틀에서 연 설정 창 → TITLE) | 버튼, Esc, 같은 단축키로 닫기 |
+| `MODAL` | 메뉴·상점·저장·설정·AI 창. 열기 전 상태를 `Modal.prev` 에 기억했다가 닫을 때 되돌린다 (타이틀에서 연 설정 창 → TITLE). 설명 팝업(`#pop`)은 상태를 바꾸지 않는 겹침 요소 | 버튼, Esc(팝업이 있으면 팝업 먼저), 같은 단축키로 닫기 |
 | `SYSTEM` | 알림·확인 창(`uiConfirm` 등). 닫히면 직전 상태로 | ←→, Enter/Space, Esc |
-| `BATTLE` | 전투 | 커맨드 버튼·숫자키 |
+| `BATTLE` | 전투 | 커맨드 버튼·방향키+Enter·숫자키 |
 | `ENDING` | 엔딩 | 재시작 버튼 |
 
 ## Firebase

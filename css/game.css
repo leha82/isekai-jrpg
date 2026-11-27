@@ -28,7 +28,7 @@ button { font-family: inherit; }
 #toast {
   position: absolute; top: 60px; left: 50%; transform: translate(-50%, -8px); z-index: 40;
   background: rgba(22, 101, 52, 0.95); color: #fff; border: 2px solid #4ade80; border-radius: 6px;
-  padding: 6px 14px; font-size: 12px; font-weight: bold; white-space: nowrap;
+  padding: 6px 14px; font-size: 12px; font-weight: bold; white-space: normal; max-width: 92%; text-align: center;
   opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -144,6 +144,10 @@ button { font-family: inherit; }
 .gear-line { color: #cbd5e1; padding: 2px 0 4px; }
 .card { display: flex; gap: 10px; background: #161d33; border: 1px solid #334155; border-radius: 8px; padding: 8px; }
 .card-portrait { width: 76px; height: 76px; border-radius: 6px; border: 2px solid #e8dcc0; }
+.card-side { display: flex; flex-direction: column; gap: 4px; align-items: stretch; width: 80px; flex-shrink: 0; }
+.card-side .item-btn { padding: 4px 0; }
+.card.editing { border-color: #b45309; }
+.party-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .card-body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
 .card-title { font-size: 14px; font-weight: bold; } .card-title small { color: #94a3b8; font-weight: normal; }
 .stat-line { display: flex; align-items: center; gap: 6px; } .stat-line .bar { width: 140px; height: 7px; }
@@ -258,7 +262,6 @@ button.cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .action-pads { display: flex; gap: 10px; }
 .act-btn { padding: 12px 16px; font-size: 13px; font-weight: bold; border-radius: 8px; border: 2px solid #fff; color: #fff; cursor: pointer; touch-action: manipulation; }
 .btn-a { background: #2563eb; } .btn-b { background: #b45309; }
-.controls-hint { margin-top: 6px; font-size: 11px; color: #94a3b8; text-align: center; max-width: 720px; }
 
 /* ---------- 광고 자리 (제어 레이아웃 아래) ---------- */
 #ad-slot {
@@ -274,7 +277,6 @@ body.pad-hidden #virtual-pad { display: none !important; }
 /* 모바일 (세로·가로): 가상 패드를 게임 화면(필드) 위에 겹쳐 띄운다. 필드가 아닐 때(전투·대화·메뉴)는 숨긴다. */
 body.layout-mobile-portrait, body.layout-mobile-landscape { padding: 2px; }
 body.layout-mobile-portrait { justify-content: flex-start; }
-body.layout-mobile-portrait .controls-hint, body.layout-mobile-landscape .controls-hint { display: none; }
 body.layout-mobile-portrait #ad-slot, body.layout-mobile-landscape #ad-slot { height: 50px; margin-top: 4px; }
 body.layout-mobile-portrait #virtual-pad, body.layout-mobile-landscape #virtual-pad {
   position: absolute; left: 0; right: 0; bottom: 8px; max-width: none; width: auto; margin: 0; z-index: 30;
@@ -292,7 +294,6 @@ body.portrait #autosave-mark { top: 88px; }
 body.portrait #hud-left { width: 186px; }
 /* 전체 화면 */
 body.is-fullscreen { padding: 0; }
-body.is-fullscreen .controls-hint { display: none; }
 @keyframes blink { 50% { opacity: 0; } }
 
 @media (max-width: 480px) {
@@ -316,18 +317,8 @@ button.cmd-btn img.ico { width: 16px; height: 16px; vertical-align: -3px; }
 /* ---------- 파티: EXP · 5스탯 ---------- */
 .stat-line .k { width: 26px; color: #94a3b8; font-size: 10px; font-weight: bold; }
 .stat-line .bar.exp { width: 140px; height: 7px; }
-.stat5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 2px 0; max-width: 330px; }
-.stat5 span { background: #0f1528; border: 1px solid #334155; border-radius: 4px; text-align: center; padding: 2px 0; cursor: help; }
-.stat5 em { display: block; font-style: normal; font-size: 9px; color: #94a3b8; font-weight: bold; }
-.stat5 b { font-size: 13px; color: #fff; }
-.stat-legend { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 10px; color: #94a3b8; padding: 4px 2px; border-top: 1px dashed #334155; }
-.stat-legend b { color: #fde68a; }
 
 /* ---------- 스킬·장비 탭: 캐릭터 고르기 ---------- */
-.char-picker { display: flex; gap: 6px; flex-wrap: wrap; }
-.char-btn { display: flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; border: 1.5px solid #475569; border-radius: 18px; padding: 2px 10px 2px 2px; cursor: pointer; font-weight: bold; font-size: 12px; }
-.char-btn img { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #e8dcc0; }
-.char-btn.on { background: #b45309; border-color: #fde68a; color: #fff; }
 .equip-slot { background: #161d33; border: 1px solid #334155; border-radius: 6px; padding: 6px 8px; }
 .equip-cur { display: flex; align-items: center; gap: 8px; }
 .slot-label { width: 46px; font-weight: bold; color: #fde68a; flex-shrink: 0; }
@@ -339,8 +330,6 @@ button.cmd-btn img.ico { width: 16px; height: 16px; vertical-align: -3px; }
 /* ---------- 설정 ---------- */
 .top-actions { gap: 6px; flex-wrap: wrap; }
 .item-btn.big { padding: 7px 14px; font-size: 13px; }
-.mute-btn { min-width: 64px; }
-.mute-btn.off { background: #475569; border-color: #94a3b8; }
 .pid { font-size: 12px; } .pid-text { font-family: Consolas, monospace; letter-spacing: 1px; color: #fde68a; user-select: text; -webkit-user-select: text; }
 #ov-pid:empty { display: none; }
 
@@ -353,13 +342,90 @@ button.cmd-btn img.ico { width: 16px; height: 16px; vertical-align: -3px; }
 .map-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; vertical-align: 0; }
 
 /* ---------- AI 연결 (회사 - 모델 목록) ---------- */
+
+/* ---------- 설명 팝업 (확인 버튼 없음, js/core/ui.js showPop) ---------- */
+#pop {
+  position: absolute; z-index: 45; display: none; max-width: 300px; min-width: 150px;
+  background: linear-gradient(180deg, #1a1f42, #0e1128); border: 2px solid #e8dcc0; border-radius: 8px;
+  padding: 7px 10px; font-size: 12px; line-height: 1.5; color: #e2e8f0; box-shadow: 0 6px 18px rgba(0,0,0,.55);
+}
+#pop.show { display: block; animation: sysIn .12s ease-out; }
+#pop .pop-title { font-weight: bold; color: #fde68a; margin-bottom: 3px; }
+#pop .pop-title b { color: #fff; font-size: 14px; margin-left: 4px; }
+#pop .pop-title small { color: #94a3b8; font-weight: normal; }
+#pop .pop-line { color: #cbd5e1; }
+#pop .pop-btns { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+
+/* ---------- 전투: 화살표로 고르는 커서 ---------- */
+button.cmd-btn.focus { outline: 2px solid #fde68a; outline-offset: -1px; background: #2a3158; }
+
+/* ---------- 능력치 칸 (누르면 설명 팝업) ---------- */
+.stat5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 2px 0; max-width: 360px; }
+.stat5 .stat-cell { background: #0f1528; border: 1px solid #334155; border-radius: 4px; text-align: center; padding: 2px 0; cursor: pointer; color: #fff; font-family: inherit; }
+.stat5 .stat-cell:hover { border-color: #fde68a; background: #1a2240; }
+.stat5 em { display: block; font-style: normal; font-size: 9px; color: #94a3b8; font-weight: bold; }
+.stat5 b { font-size: 13px; color: #fff; }
+.stat5.derived b { font-size: 12px; color: #fde68a; }
+
+/* ---------- 캐릭터 고르기 (가방·장비·스킬 공용, 파티 창 모양의 작은 카드) ---------- */
+.char-picker { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 5px; }
+.picker-label { font-size: 11px; color: #94a3b8; font-weight: bold; margin-bottom: -3px; }
+.char-card, .target-card {
+  display: flex; align-items: center; gap: 6px; background: #161d33; color: #e2e8f0; border: 1.5px solid #334155; border-radius: 7px;
+  padding: 4px 6px 4px 4px; cursor: pointer; font-family: inherit; text-align: left; min-width: 0;
+}
+.char-card:hover, .target-card:hover { border-color: #94a3b8; }
+.char-card.on { border-color: #fde68a; background: #2a2a20; box-shadow: 0 0 0 1px #b45309 inset; }
+.char-card img, .target-card img { width: 32px; height: 32px; border-radius: 5px; border: 1.5px solid #e8dcc0; flex-shrink: 0; }
+.cc-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.cc-body b { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-body small { font-size: 9px; color: #94a3b8; }
+.cc-bar { display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; }
+.cc-bar .bar { width: 100%; height: 4px; }
+.cc-bar i { font-style: normal; font-size: 9px; color: #cbd5e1; }
+
+/* ---------- 가방: 격자 ---------- */
+.bag-grid { display: grid; grid-template-columns: repeat(auto-fill, 50px); gap: 6px; }
+.bag-cell {
+  position: relative; width: 50px; height: 50px; padding: 6px; background: #161d33; border: 1.5px solid #334155; border-radius: 6px; cursor: pointer;
+}
+.bag-cell:hover { border-color: #fde68a; background: #1e2745; }
+.bag-cell.usable { border-color: #2f6a4a; }
+.bag-cell img { width: 100%; height: 100%; display: block; }
+.bag-cell .no-ico { color: #fff; font-size: 11px; font-weight: bold; }
+.bag-cell .cnt { position: absolute; right: 2px; bottom: 1px; font-size: 11px; font-weight: bold; color: #fff; text-shadow: 0 1px 0 #000, 0 0 3px #000, 1px 0 0 #000, -1px 0 0 #000; pointer-events: none; }
+
+/* ---------- 스킬: 왼쪽 대상 고르기 ---------- */
+.skill-wrap { display: flex; gap: 8px; align-items: flex-start; }
+.skill-list { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.skill-targets { width: 160px; flex-shrink: 0; display: flex; flex-direction: column; gap: 5px; background: #10162b; border: 1.5px solid #b45309; border-radius: 7px; padding: 6px; }
+.skill-targets .section-title { margin-top: 0; }
+.item-row.picking { border-color: #fde68a; }
+
+/* ---------- 설정: 소리 켜기/끄기 아이콘 버튼 (파란색 아님), Google 아이콘 ---------- */
+.sound-btn { width: 32px; height: 28px; padding: 3px; background: #3f3a2a; border: 1.5px solid #c8b27a; border-radius: 5px; cursor: pointer; }
+.sound-btn:hover { background: #57502f; }
+.sound-btn img { width: 100%; height: 100%; display: block; }
+.sound-btn.off { background: #4a1f24; border-color: #b45a5a; }
+.g-ico { width: 18px; height: 18px; flex-shrink: 0; background: #fff; border-radius: 50%; padding: 2px; }
+.ai-now { color: #fde68a; font-family: Consolas, 'Malgun Gothic', monospace; }
+.item-btn.danger { background: #8a2a2a; border-color: #f0a0a0; }
+.item-btn.danger:hover:not(:disabled) { background: #a33030; }
+.item-btn.ghost { background: #334155; border-color: #94a3b8; }
+
+/* ---------- AI 연결 ---------- */
+.ai-box { background: #161d33; border: 1.5px solid #e8dcc0; border-radius: 7px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.ai-box .ai-fields { display: grid; grid-template-columns: 70px 1fr; gap: 5px 8px; align-items: center; }
+.ai-box .ai-fields label { font-weight: bold; color: #fde68a; font-size: 11px; }
+.ai-model-row { display: flex; gap: 6px; }
+.ai-model-row select { flex-shrink: 0; }
 .ai-list { display: flex; flex-direction: column; gap: 4px; }
-.ai-row { background: #161d33; border: 1px solid #334155; border-radius: 6px; }
-.ai-row.active { border-color: #fde68a; }
-.ai-row .ai-head { display: flex; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; }
-.ai-row .ai-head:hover { background: #1e2745; }
+.ai-conn { display: flex; align-items: center; gap: 6px; background: #161d33; border: 1px solid #334155; border-radius: 6px; padding: 5px 8px 5px 10px; cursor: pointer; }
+.ai-conn:hover { background: #1e2745; }
+.ai-conn.active { border-color: #fde68a; }
 .ai-name { font-weight: bold; font-family: Consolas, 'Malgun Gothic', monospace; }
-.ai-key { font-size: 10px; color: #94a3b8; } .ai-key.ok { color: #86efac; }
-.ai-caret { font-size: 9px; color: #fde68a; }
-.ai-detail { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 5px; border-top: 1px dashed #334155; }
-.ai-detail .ai-fields { display: grid; grid-template-columns: 110px 1fr; gap: 4px 8px; align-items: center; }
+
+/* ---------- 지도: 고르기 · 범례 ---------- */
+.map-select { align-self: flex-start; }
+.map-legend i.sq { border-radius: 2px; }
+.map-none { line-height: 1.6; }

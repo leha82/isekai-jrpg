@@ -19,7 +19,7 @@ const STAT_RULES = [
   ["critBase", "기본 치명타율 (0~1)", 0.01], ["critPerDex", "DEX 1당 치명타율", 0.001], ["critPerAgi", "AGI 1당 치명타율", 0.001],
   ["evadePerAgi", "AGI 1당 회피율", 0.001], ["evadePerDex", "DEX 1당 회피율", 0.001], ["maxCrit", "치명타율 상한", 0.05], ["maxEvade", "회피율 상한", 0.05]
 ];
-const ITEM_TYPES = { heal_hp: "HP 회복", heal_mp: "MP 회복", key: "중요 아이템", weapon: "무기", armor: "방어구", accessory: "장신구" };
+const ITEM_TYPES = { heal_hp: "HP 회복", heal_mp: "MP 회복", key: "퀘스트 아이템", map: "지도 (퀘스트 아이템)", weapon: "무기", armor: "방어구", accessory: "장신구" };
 const BONUS_KEYS = ["str", "dex", "agi", "con", "int", "atk", "matk", "def", "hp", "mp"];
 const bonusToText = (b) => Object.entries(b || {}).filter(([, v]) => v).map(([k, v]) => `${k}${v > 0 ? "+" : ""}${v}`).join(",");
 function textToBonus(t) {
@@ -122,13 +122,15 @@ function renderSkills() {
 function renderItems() {
   const it = GameData.items.items, shops = GameData.items.shops;
   $("battle-body").innerHTML = `<div class="section-title">아이템</div>
-    <table class="mini-table wide-table"><tr><th>ID</th><th>아이콘</th><th>이름</th><th>종류</th><th>회복량</th><th>장비 보너스 <small>(str+2,atk+4)</small></th><th>장착 가능 <small>(id, 비우면 누구나)</small></th><th>가격</th><th>설명</th><th></th></tr>
+    <table class="mini-table wide-table"><tr><th>ID</th><th>아이콘</th><th>이름</th><th>종류</th><th>회복량</th><th>장비 보너스 <small>(str+2,atk+4)</small></th><th>장착 가능 <small>(id, 비우면 누구나)</small> / 지도: 지역 맵 id</th><th>가격</th><th>설명</th><th></th></tr>
     ${Object.entries(it).map(([id, v]) => `<tr><td>${id}</td><td>${v.icon ? `<img src="${esc(v.icon)}" width="20" height="20">` : ""}<select data-i="${id}" data-f="icon">${iconOptions("items", v.icon)}</select></td>
       <td><input data-i="${id}" data-f="name" value="${esc(v.name)}"></td>
       <td><select data-i="${id}" data-f="type">${options(Object.keys(ITEM_TYPES), v.type, t => ITEM_TYPES[t])}</select></td>
       <td><input type="number" data-i="${id}" data-f="amount" value="${v.amount ?? ""}"></td>
       <td><input data-i="${id}" data-f="bonus" value="${esc(bonusToText(v.bonus))}" style="width:120px" ${["weapon", "armor", "accessory"].includes(v.type) ? "" : "disabled"}></td>
-      <td><input data-i="${id}" data-f="for" value="${esc((v.for || []).join(","))}" style="width:90px" ${["weapon", "armor", "accessory"].includes(v.type) ? "" : "disabled"}></td>
+      <td>${v.type === "map"
+        ? `<input data-i="${id}" data-f="nodes" value="${esc((v.nodes || []).join(","))}" style="width:150px" title="이 지도에 그릴 지역 맵 id (쉼표)"> 장<input type="number" data-i="${id}" data-f="chapter" value="${v.chapter ?? ""}" style="width:40px" title="챕터">`
+        : `<input data-i="${id}" data-f="for" value="${esc((v.for || []).join(","))}" style="width:90px" ${["weapon", "armor", "accessory"].includes(v.type) ? "" : "disabled"}>`}</td>
       <td><input type="number" data-i="${id}" data-f="price" value="${v.price ?? 0}"></td>
       <td><input data-i="${id}" data-f="desc" value="${esc(v.desc || "")}" style="width:240px"></td>
       <td><button class="btn small" data-idel="${id}">✕</button></td></tr>`).join("")}</table>
@@ -145,7 +147,13 @@ function renderItems() {
   const body = $("battle-body");
   body.querySelectorAll("[data-i]").forEach(el => el.onchange = () => {
     const v = it[el.dataset.i], k = el.dataset.f;
-    if (k === "amount" || k === "price") { if (el.value === "") delete v[k]; else v[k] = Math.max(0, Math.round(num(el.value))); }
+    if (k === "amount" || k === "price" || k === "chapter") { if (el.value === "") delete v[k]; else v[k] = Math.max(0, Math.round(num(el.value))); }
+    else if (k === "nodes") {
+      const ids = el.value.split(",").map(x => x.trim()).filter(Boolean);
+      const bad = ids.filter(x => !(GameData.game.worldMap || {})[x]);
+      if (bad.length) { setStatus(`월드 지도 위치(game.json worldMap)가 없는 맵 id: ${bad.join(", ")}`, "error"); render(); return; }
+      v.nodes = ids;
+    }
     else if (k === "bonus") v.bonus = textToBonus(el.value);
     else if (k === "for") {
       const ids = el.value.split(",").map(x => x.trim()).filter(Boolean);
@@ -156,6 +164,7 @@ function renderItems() {
     else {
       v[k] = el.value;
       if (k === "type" && ["weapon", "armor", "accessory"].includes(el.value)) { if (!v.bonus) v.bonus = {}; if (!v.for) v.for = []; delete v.amount; }
+      if (k === "type" && el.value === "map") { if (!v.nodes) v.nodes = []; delete v.amount; delete v.bonus; delete v.for; }
     }
     render();
   });

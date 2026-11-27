@@ -97,6 +97,10 @@
    "size": 273
   },
   {
+   "path": "assets/img/icons/google.svg",
+   "size": 531
+  },
+  {
    "path": "assets/img/icons/heart.svg",
    "size": 263
   },
@@ -151,6 +155,18 @@
   {
    "path": "assets/img/icons/items/luck_charm.svg",
    "size": 735
+  },
+  {
+   "path": "assets/img/icons/items/map_capital.svg",
+   "size": 734
+  },
+  {
+   "path": "assets/img/icons/items/map_north.svg",
+   "size": 734
+  },
+  {
+   "path": "assets/img/icons/items/map_south.svg",
+   "size": 734
   },
   {
    "path": "assets/img/icons/items/oak_staff.svg",

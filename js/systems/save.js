@@ -349,7 +349,7 @@ async function copyPlayerId() {
 
 function playerIdHtml() {
   if (!playerId) return cloudUser ? `<span class="muted small">플레이어 ID 확인 중…</span>` : "";
-  return `<span class="pid">🆔 <b class="pid-text">${playerId}</b></span><button class="item-btn" onclick="copyPlayerId()" title="복사">📋 복사</button>`;
+  return `<span class="pid">플레이어 ID : <b class="pid-text">${playerId}</b></span><button class="item-btn" onclick="copyPlayerId()">복사</button>`;
 }
 
 // ---------- 불러오기 ----------
@@ -396,7 +396,7 @@ function refreshTitleContinue() {
   const pick = latestAnySave();
   if (pick) {
     const s = saveSummary(pick.data);
-    btn.textContent = `▶ 이어하기 (${s.who} · ${slotLabel(pick.id)})`;
+    btn.textContent = `이어하기 (${s.who} · ${slotLabel(pick.id)})`;
     btn.style.display = "inline-block";
   } else {
     btn.style.display = "none";
@@ -430,13 +430,13 @@ function renderSaveWindow(loading = false) {
       : `<span class="muted">비어 있음</span>`;
     let btn = "";
     if (tab === "save") btn = id === "auto" ? `<span class="muted small">자동</span>`
-      : cloudReady() ? `<button class="item-btn" onclick="saveSlotClick('${id}')">저장</button>` : `<button class="item-btn" disabled title="로그인 필요">🔒 저장</button>`;
+      : cloudReady() ? `<button class="item-btn" onclick="saveSlotClick('${id}')">저장</button>` : `<button class="item-btn" disabled title="로그인 필요">저장</button>`;
     else btn = `<button class="item-btn" onclick="loadSlot('${id}')" ${pick ? "" : "disabled"}>불러오기</button>`;
-    return `<div class="slot-row${pick ? "" : " empty"}"><span class="slot-name">${id === "auto" ? "🔄 " : "💾 "}${slotLabel(id)}</span><div class="slot-info">${info}</div>${btn}</div>`;
+    return `<div class="slot-row${pick ? "" : " empty"}"><span class="slot-name">${slotLabel(id)}</span><div class="slot-info">${info}</div>${btn}</div>`;
   }).join("");
   const cloudLine = !window.cloud ? `<p class="muted small">클라우드를 사용할 수 없어 이 기기에만 저장됩니다.</p>`
     : cloudReady() ? `<p class="muted small">☁️ ${escapeHtml(cloudUser.displayName || cloudUser.email || "")} — 모든 슬롯이 클라우드에 저장되어 다른 기기에서도 불러올 수 있습니다.${loading ? " (클라우드 확인 중…)" : ""}</p>`
-    : `<p class="muted small">로그인하지 않아 <b>자동 저장만</b> 이 기기에 됩니다. 수동 저장(슬롯 1~5)은 Google 로그인한 뒤에 할 수 있습니다. <button class="item-btn" onclick="toggleLogin()">🔑 로그인</button></p>`;
+    : `<p class="muted small">로그인하지 않아 <b>자동 저장만</b> 이 기기에 됩니다. 수동 저장(슬롯 1~5)은 Google 로그인한 뒤에 할 수 있습니다. <button class="item-btn" onclick="toggleLogin()">로그인</button></p>`;
   const help = tab === "save" ? `<p class="muted small" style="margin:0">자동 저장: 전투가 끝났을 때 · 다른 맵으로 이동했을 때 · NPC 대화가 끝났을 때</p>` : "";
   openWindow(inGame ? "💾 저장 · 불러오기" : "📂 불러오기", help + rows + cloudLine, inGame ? {
     kind: "save", tabs: [{ id: "save", label: "저장" }, { id: "load", label: "불러오기" }], active: tab,
@@ -472,10 +472,10 @@ function updateAuthUI() {
   ovBtn.style.display = "inline-block";
   const pidBox = document.getElementById("ov-pid");
   if (cloudUser) {
-    ovBtn.textContent = "🔓 로그아웃";
+    ovBtn.textContent = "로그아웃";
     status.textContent = `☁️ ${cloudUser.displayName || cloudUser.email || "사용자"} 님 — 모든 저장이 클라우드에 기록됩니다.`;
   } else {
-    ovBtn.textContent = "🔑 Google 로그인";
+    ovBtn.textContent = "Google 로그인";
     status.textContent = "로그인하면 수동 저장(슬롯 1~5)을 쓸 수 있고, 모든 저장이 클라우드에 올라가 다른 기기에서도 이어할 수 있습니다.";
   }
   if (pidBox) pidBox.innerHTML = cloudUser ? playerIdHtml() : "";

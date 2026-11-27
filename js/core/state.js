@@ -140,6 +140,15 @@ function moveMember(id, delta) {
   return true;
 }
 
+// 합류 멤버 순서를 한 번에 정한다 (파티 메뉴 '순서 변경' → 완료). ids 에 없는 합류 멤버는 뒤로.
+function setPartyOrder(ids) {
+  const act = activeParty();
+  const rank = (m) => { const i = ids.indexOf(m.id); return i < 0 ? 99 : i; };
+  const order = act.slice().sort((a, b) => rank(a) - rank(b));
+  const slots = party.map((p, k) => p.unlocked ? k : -1).filter(k => k >= 0);
+  slots.forEach((k, n) => { party[k] = order[n]; });
+}
+
 // {hero} → 주인공 이름
 function fmt(text) {
   return String(text ?? "").replace(/\{hero\}/g, player ? player.name : GameData.game.defaultHeroName);

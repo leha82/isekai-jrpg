@@ -1,5 +1,5 @@
 // ==========================================
-// 공통 UI: 토스트, 시스템 알림·확인 창(uiAlert/uiConfirm), 대화창(초상화·타자 효과), 창(모달), 이름 입력
+// 공통 UI: 토스트, 시스템 알림·확인 창(uiAlert/uiConfirm), 설명 팝업(showPop), 대화창(초상화·타자 효과), 창(모달), 이름 입력
 // 화면 크기·레이아웃은 js/core/display.js
 // ==========================================
 const $ = (id) => document.getElementById(id);
@@ -148,12 +148,55 @@ function uiConfirm(msg, opts = {}) {
   });
 }
 
+// ---------- 설명 팝업 (확인 버튼 없음) ----------
+// showPop(html, 기준 요소): 기준 요소 아래(자리가 없으면 위)에 작은 설명 창을 띄운다.
+// 팝업 밖을 누르거나 Esc, 창을 다시 그리면 닫힌다. 게임 상태(gameState)는 바꾸지 않는다.
+const Pop = { anchor: null };
+
+function showPop(html, anchor) {
+  const pop = $("pop"), box = $("game-container");
+  pop.innerHTML = html;
+  pop.classList.add("show");
+  Pop.anchor = anchor || null;
+  // 게임 화면은 CSS 배율(Display.scale)로 커지거나 작아지므로 화면 좌표를 내부 좌표로 바꾼다. 테두리 4px.
+  const s = (typeof Display !== "undefined" && Display.scale) || 1;
+  const cr = box.getBoundingClientRect();
+  const W = box.clientWidth, H = box.clientHeight;
+  pop.style.left = "0px"; pop.style.top = "0px";
+  const pw = pop.offsetWidth, ph = pop.offsetHeight;
+  let x = 10, y = 10;
+  if (anchor) {
+    const ar = anchor.getBoundingClientRect();
+    const ax = (ar.left - cr.left) / s - 4, atop = (ar.top - cr.top) / s - 4, abot = (ar.bottom - cr.top) / s - 4;
+    x = ax;
+    y = abot + 4;
+    if (y + ph > H - 6) y = atop - ph - 4;
+  }
+  pop.style.left = `${Math.round(Math.max(6, Math.min(x, W - pw - 6)))}px`;
+  pop.style.top = `${Math.round(Math.max(6, Math.min(y, H - ph - 6)))}px`;
+}
+function popOpen() { return $("pop").classList.contains("show"); }
+function closePop() {
+  const pop = $("pop");
+  if (!pop || !pop.classList.contains("show")) return;
+  pop.classList.remove("show");
+  pop.innerHTML = "";
+  Pop.anchor = null;
+}
+// 팝업 밖을 누르면 닫는다 (기준 요소를 다시 누르는 것은 그 요소의 onclick 이 처리)
+document.addEventListener("pointerdown", (e) => {
+  if (!popOpen()) return;
+  if (e.target.closest("#pop") || (Pop.anchor && Pop.anchor.contains(e.target))) return;
+  closePop();
+}, true);
+
 // ---------- 창(모달) ----------
 // openWindow(제목, html, { tabs:[{id,label}], active, onTab, onClose })
 // 창을 열기 전 상태(TITLE/WORLD)를 기억했다가 닫을 때 되돌린다. 창 안에서 다시 열면(탭 전환) 그대로 유지.
 const Modal = { prev: "WORLD", onClose: null, kind: "" };
 
 function openWindow(title, html, opts = {}) {
+  closePop();
   if (gameState !== "MODAL") Modal.prev = gameState;
   gameState = "MODAL";
   Modal.onClose = opts.onClose || null;
@@ -177,6 +220,7 @@ function modalOpen(kind) { return gameState === "MODAL" && (!kind || Modal.kind 
 
 function closeModal() {
   if ($("modal-ui").style.display === "none") return;
+  closePop();
   $("modal-ui").style.display = "none";
   if (gameState === "MODAL") gameState = Modal.prev || "WORLD";
   const cb = Modal.onClose;

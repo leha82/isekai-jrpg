@@ -1,15 +1,16 @@
 // ==========================================
 // 입력 처리 — 키보드(누르고 있으면 계속 이동) + 가상 패드(터치·마우스 누르고 있기)
-// 필드 단축키 (우상단 아이콘 안에 표시): P 파티 · I 가방 · E 장비 · K 스킬 · Q 퀘스트 · M 지도 · F 저장 · N 소리 · O/Esc 설정
+// 이동은 방향키만 (WASD 이동 없음). 전투는 화살표로 커맨드 선택(battleKey).
+// 필드 단축키 (우상단 아이콘 안에 표시): P 파티 · I 가방 · E 장비 · S 스킬 · Q 퀘스트 · M 지도 · F 저장 · N 소리 · O/Esc 설정
 // ==========================================
 const HOTKEYS = {
-  p: () => openMenu("party"), i: () => openMenu("items"), e: () => openMenu("equip"), k: () => openMenu("skills"), m: () => openMenu("map"),
+  p: () => openMenu("party"), i: () => openMenu("items"), e: () => openMenu("equip"), s: () => openMenu("skills"), m: () => openMenu("map"),
   q: () => openMenu("quests"), f: () => openSaveWindow("save"), n: () => hudMute(), o: () => openMenu("settings"),
   escape: () => openMenu("settings")
 };
 // 창이 열려 있을 때 같은 단축키를 누르면 닫는다 (메뉴 탭은 해당 탭으로 전환)
-const HOTKEY_TAB = { p: "party", i: "items", e: "equip", k: "skills", q: "quests", m: "map", o: "settings" };
-const KEY_DIR = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right" };
+const HOTKEY_TAB = { p: "party", i: "items", e: "equip", s: "skills", q: "quests", m: "map", o: "settings" };
+const KEY_DIR = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
 
 function handleActionKey() {
   initAudio();
@@ -24,6 +25,7 @@ window.addEventListener("keydown", (e) => {
   if (gameState === "BATTLE") { battleKey(e); return; }
   const key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
   if (gameState === "MODAL") {
+    if (e.key === "Escape" && popOpen()) { e.preventDefault(); closePop(); return; } // 설명 팝업이 먼저 닫힌다
     if (e.key === "Escape") { e.preventDefault(); closeModal(); SFX.cancel(); return; }
     if (Modal.prev !== "WORLD" || e.repeat) return;
     if (modalOpen("menu") && HOTKEY_TAB[key]) {

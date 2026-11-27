@@ -288,7 +288,29 @@ COLOR_ICONS = {
                            + '<path d="M14 2 L11 6 M27 1 L25 4" stroke="#f4f1e6" stroke-width="1.4" stroke-linecap="round"/>'),
     'skills/herb_toss': (f'<path d="M5 27 Q8 12 26 5 Q24 22 5 27 Z" fill="#7fd36a" {_o()}/>'
                          '<path d="M6 26 Q14 17 22 9" fill="none" stroke="#2f6a22" stroke-width="1.4"/>' + sparkle(26, 18)),
+    # ---- 지도 (퀘스트 아이템, 지역마다 색이 다른 두루마리 지도)
+    'items/map_south': None, 'items/map_capital': None, 'items/map_north': None,
+    # ---- 설정 → 계정: Google 로그인 표시 (네 가지 색 G)
+    'google': ('<path d="M27.5 16.3c0-.9-.1-1.7-.2-2.5H16v4.8h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z" fill="#4285F4"/>'
+               '<path d="M16 28c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 16 28z" fill="#34A853"/>'
+               '<path d="M9.4 18.4a7.2 7.2 0 0 1 0-4.7v-3.1h-4a12 12 0 0 0 0 10.9z" fill="#FBBC05"/>'
+               '<path d="M16 8.7c1.7 0 3.3.6 4.5 1.8l3.4-3.4A12 12 0 0 0 5.4 10.6l4 3.1c.9-2.8 3.5-5 6.6-5z" fill="#EA4335"/>'),
 }
+
+
+def map_scroll(land, accent):
+    """두루마리 지도: 양피지 + 땅 모양 + 길 점선 + 표시"""
+    return (f'<path d="M5 6 L27 6 L27 26 L5 26 Z" fill="#ecd9a8" {_o()}/>'
+            '<path d="M5 6 Q3 6 3 8 L3 24 Q3 26 5 26" fill="#c9a86a" stroke="#3a2a14" stroke-width="1.2"/>'
+            '<path d="M27 6 Q29 6 29 8 L29 24 Q29 26 27 26" fill="#c9a86a" stroke="#3a2a14" stroke-width="1.2"/>'
+            f'<path d="M8 20 Q9 12 15 11 Q22 9 24 14 Q25 20 19 22 Q12 24 8 20 Z" fill="{land}" opacity=".85"/>'
+            '<path d="M10 19 L15 15 L20 17 L23 12" fill="none" stroke="#7a3e14" stroke-width="1.3" stroke-dasharray="1.6 1.4"/>'
+            f'<path d="M21 9.5 l2.5 2.5 M23.5 9.5 l-2.5 2.5" stroke="{accent}" stroke-width="1.8" stroke-linecap="round"/>')
+
+
+COLOR_ICONS['items/map_south'] = map_scroll('#7fd36a', '#c0392b')
+COLOR_ICONS['items/map_capital'] = map_scroll('#e8c25a', '#c0392b')
+COLOR_ICONS['items/map_north'] = map_scroll('#a8d8f0', '#7c3aed')
 
 
 def color_icon_svg(body):

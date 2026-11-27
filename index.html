@@ -15,6 +15,8 @@
   <canvas id="world-canvas" width="640" height="480"></canvas>
   <div id="map-banner"></div>
   <div id="toast"></div>
+  <!-- 확인 버튼 없는 설명 팝업 (스탯 설명·가방 아이템) — js/core/ui.js showPop -->
+  <div id="pop"></div>
 
   <!-- 좌상단: 리더(맵을 걷는 캐릭터) 정보 · 동료 HP/MP · 퀘스트 한 줄 -->
   <div id="hud-left" style="display:none">
@@ -46,7 +48,7 @@
     <button class="icon-btn" title="파티 (P)" onclick="openMenu('party')"><img src="assets/img/icons/party.svg" alt=""><span class="key">P</span></button>
     <button class="icon-btn" title="가방 (I)" onclick="openMenu('items')"><img src="assets/img/icons/bag.svg" alt=""><span class="key">I</span></button>
     <button class="icon-btn" title="장비 (E)" onclick="openMenu('equip')"><img src="assets/img/icons/equip.svg" alt=""><span class="key">E</span></button>
-    <button class="icon-btn" title="스킬 (K)" onclick="openMenu('skills')"><img src="assets/img/icons/skill.svg" alt=""><span class="key">K</span></button>
+    <button class="icon-btn" title="스킬 (S)" onclick="openMenu('skills')"><img src="assets/img/icons/skill.svg" alt=""><span class="key">S</span></button>
     <button class="icon-btn" title="퀘스트 (Q)" onclick="openMenu('quests')"><img src="assets/img/icons/quest.svg" alt=""><span class="key">Q</span></button>
     <button class="icon-btn" title="지도 (M)" onclick="openMenu('map')"><img src="assets/img/icons/map.svg" alt=""><span class="key">M</span></button>
     <button class="icon-btn" title="저장·불러오기 (F)" onclick="openSaveWindow('save')"><img src="assets/img/icons/save.svg" alt=""><span class="key">F</span></button>
@@ -65,7 +67,7 @@
   </div>
 
   <div id="modal-ui">
-    <div class="modal-head"><div id="modal-title"></div><button class="mini-btn" onclick="closeModal()">✕ 닫기</button></div>
+    <div class="modal-head"><div id="modal-title"></div><button class="mini-btn" onclick="closeModal()">닫기</button></div>
     <div id="modal-tabs"></div>
     <div id="modal-list"></div>
   </div>
@@ -96,17 +98,17 @@
     <div id="ov-subtitle">베일하르트의 균열</div>
     <p id="ov-desc"></p>
     <div id="ov-menu">
-      <button class="start-btn" id="ov-btn" onclick="newGame()" disabled>⚔️ 새 게임</button>
-      <button class="start-btn secondary" id="ov-continue" style="display:none;" onclick="continueGame()" disabled>▶ 이어하기</button>
-      <button class="start-btn ghost" id="ov-load" onclick="openSaveWindow('load')" disabled>📂 불러오기</button>
+      <button class="start-btn" id="ov-btn" onclick="newGame()" disabled>새 게임</button>
+      <button class="start-btn secondary" id="ov-continue" style="display:none;" onclick="continueGame()" disabled>이어하기</button>
+      <button class="start-btn ghost" id="ov-load" onclick="openSaveWindow('load')" disabled>불러오기</button>
       <div class="ov-row">
-        <button class="mini-btn" onclick="openTitleSettings()">⚙️ 설정</button>
-        <button class="mini-btn" onclick="openAIMenu()">🤖 AI 연결</button>
-        <button class="mini-btn" id="ov-login-btn" onclick="toggleLogin()" style="display:none;">🔑 Google 로그인</button>
+        <button class="mini-btn" onclick="openTitleSettings()">설정</button>
+        <button class="mini-btn" onclick="openAIMenu()">AI 연결</button>
+        <button class="mini-btn" id="ov-login-btn" onclick="toggleLogin()" style="display:none;">Google 로그인</button>
       </div>
     </div>
     <div id="ov-scenario-status"></div>
-    <button class="mini-btn" id="ov-retry" style="display:none;" onclick="boot()">🔄 다시 시도</button>
+    <button class="mini-btn" id="ov-retry" style="display:none;" onclick="boot()">다시 시도</button>
     <div id="ov-auth"><div id="ov-auth-status">☁️ 클라우드 연결 중...</div><div id="ov-pid" class="setting-row"></div></div>
   </div>
 
@@ -135,12 +137,10 @@
     <div></div>
   </div>
   <div class="action-pads">
-    <button class="act-btn btn-b" onclick="openMenu('party')">📋 메뉴</button>
-    <button class="act-btn btn-a" onclick="handleActionKey()">💬 조사/확인</button>
+    <button class="act-btn btn-b" onclick="openMenu('party')">메뉴</button>
+    <button class="act-btn btn-a" onclick="handleActionKey()">조사/확인</button>
   </div>
 </div>
-
-<div class="controls-hint">방향키·WASD 이동 · Space 조사/대화 · P 파티 · I 가방 · E 장비 · K 스킬 · Q 퀘스트 · M 지도 · F 저장 · N 소리 · O/Esc 설정 · 전투 중 숫자키</div>
 
 <!-- 광고 자리 (Google AdSense 등). 광고 코드를 넣기 전까지는 게임 제목을 보여 준다. -->
 <div id="ad-slot" aria-label="광고 영역"><span class="ad-title">쐐기의 이방인</span><span class="ad-sub">베일하르트의 균열</span></div>

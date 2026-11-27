@@ -78,6 +78,8 @@ function renderBattleParty(activeId = null) {
 }
 
 // buttons: [{ label, disabled, onClick, cls }]
+// 커맨드 버튼에는 아이콘을 넣지 않는다 (글자만). 화살표 키로 고르는 커서(focus)는 첫 번째 사용 가능한 버튼에서 시작한다.
+let cmdFocus = 0;
 function setCommands(buttons, title = "") {
   $("turn-indicator").textContent = title;
   const grid = $("cmd-grid");
@@ -88,17 +90,45 @@ function setCommands(buttons, title = "") {
     el.innerHTML = `<span class="key">${i + 1}</span>${b.label}`;
     el.disabled = !!b.disabled;
     el.onclick = () => { if (!el.disabled) { SFX.cursor(); b.onClick(); } };
+    el.onmouseenter = () => { if (!el.disabled) { cmdFocus = i; paintCmdFocus(); } };
     grid.appendChild(el);
   });
+  cmdFocus = Math.max(0, buttons.findIndex(b => !b.disabled));
+  paintCmdFocus();
 }
 
-// 숫자 키로 커맨드 선택
+function paintCmdFocus() {
+  [...$("cmd-grid").children].forEach((el, i) => el.classList.toggle("focus", i === cmdFocus));
+}
+
+// 화살표로 커서 이동 (2열 격자: ←→ 한 칸, ↑↓ 한 줄). 사용할 수 없는 버튼은 건너뛴다.
+function moveCmdFocus(key) {
+  const btns = [...$("cmd-grid").children];
+  if (!btns.length) return;
+  const cols = 2, n = btns.length;
+  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -cols, ArrowDown: cols }[key];
+  let i = cmdFocus;
+  for (let tries = 0; tries < n; tries++) {
+    i += step;
+    if (key === "ArrowLeft" || key === "ArrowRight") i = (i + n) % n;
+    else if (i < 0 || i >= n) { // 위·아래 끝에서는 반대쪽 끝 줄의 같은 열로
+      const col = cmdFocus % cols;
+      i = step > 0 ? col : (Math.floor((n - 1 - col) / cols) * cols + col);
+      if (i >= n) i = n - 1;
+    }
+    if (!btns[i].disabled) break;
+  }
+  if (btns[i] && !btns[i].disabled && i !== cmdFocus) { cmdFocus = i; paintCmdFocus(); SFX.cursor(); }
+}
+
+// 화살표 + Enter/Space, 또는 숫자 키로 커맨드 선택. Esc/Backspace = 뒤로
 function battleKey(e) {
   if (gameState !== "BATTLE") return;
   const n = parseInt(e.key, 10);
   const btns = [...$("cmd-grid").querySelectorAll("button")];
-  if (n >= 1 && n <= btns.length) { e.preventDefault(); btns[n - 1].click(); }
-  else if ((e.key === " " || e.key === "Enter") && btns.length === 1) { e.preventDefault(); btns[0].click(); }
+  if (e.key.startsWith("Arrow")) { e.preventDefault(); moveCmdFocus(e.key); }
+  else if (n >= 1 && n <= btns.length) { e.preventDefault(); btns[n - 1].click(); }
+  else if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); const b = btns[cmdFocus]; if (b && !b.disabled) b.click(); }
   else if (e.key === "Escape" || e.key === "Backspace") { const back = btns.find(b => b.classList.contains("back")); if (back) { e.preventDefault(); back.click(); } }
 }
 
@@ -111,35 +141,35 @@ function allyTurn(ally) {
     const mainMenu = () => {
       const skills = skillsOf(ally);
       const btns = skills.map(s => ({
-        label: `${iconTag(s.icon)}${s.name}${s.mp ? ` <small>MP${s.mp}</small>` : ""}`,
+        label: `${s.name}${s.mp ? ` <small>MP${s.mp}</small>` : ""}`,
         disabled: ally.mp < s.mp,
         onClick: () => chooseTarget(s, (target) => done({ type: "skill", skill: s, target }), mainMenu)
       }));
-      btns.push({ label: "🎒 아이템", onClick: itemMenu });
-      btns.push({ label: "🏃 도망", disabled: B.boss, onClick: () => done({ type: "flee" }) });
+      btns.push({ label: "아이템", onClick: itemMenu });
+      btns.push({ label: "도망", disabled: B.boss, onClick: () => done({ type: "flee" }) });
       setCommands(btns, `▶ ${memberName(ally)} (${ally.role})`);
     };
     const itemMenu = () => {
       const items = Object.entries(player.inventory).filter(([id, n]) => n > 0 && ["heal_hp", "heal_mp"].includes((GameData.items.items[id] || {}).type));
       const btns = items.map(([id, n]) => {
         const it = GameData.items.items[id];
-        return { label: `${iconTag(it.icon)}${it.name} ×${n}`, onClick: () => pickAlly(`${it.name} 사용 대상`, (t) => done({ type: "item", item: id, target: t }), itemMenu) };
+        return { label: `${it.name} ×${n}`, onClick: () => pickAlly(`${it.name} 사용 대상`, (t) => done({ type: "item", item: id, target: t }), itemMenu) };
       });
       if (!btns.length) btns.push({ label: "사용할 아이템 없음", disabled: true, onClick: () => {} });
-      btns.push({ label: "↩ 뒤로", cls: "back", onClick: mainMenu });
+      btns.push({ label: "뒤로", cls: "back", onClick: mainMenu });
       setCommands(btns, "아이템");
     };
     const pickAlly = (title, onPick, back) => {
       const btns = aliveAllies().map(m => ({ label: `${escapeHtml(memberName(m))} <small>${m.hp}/${m.maxHp}</small>`, onClick: () => onPick(m) }));
-      btns.push({ label: "↩ 뒤로", cls: "back", onClick: back });
+      btns.push({ label: "뒤로", cls: "back", onClick: back });
       setCommands(btns, title);
     };
     const chooseTarget = (skill, onPick, back) => {
       if (skill.target === "enemy") {
         const alive = aliveEnemies();
         if (alive.length === 1) return onPick(alive[0]);
-        const btns = alive.map(e => ({ label: `🎯 ${escapeHtml(e.name)}`, onClick: () => { clearTargets(); onPick(e); } }));
-        btns.push({ label: "↩ 뒤로", cls: "back", onClick: () => { clearTargets(); back(); } });
+        const btns = alive.map(e => ({ label: escapeHtml(e.name), onClick: () => { clearTargets(); onPick(e); } }));
+        btns.push({ label: "뒤로", cls: "back", onClick: () => { clearTargets(); back(); } });
         setCommands(btns, `${skill.name} — 대상 선택`);
         alive.forEach(e => { const a = bvActor(e); if (a) a.targeted = true; });
         return;

@@ -5,7 +5,7 @@
 //  - 게임 내부 해상도: 가로 화면 640×480, **세로 모드 480×640** (캔버스 크기 자체가 바뀐다).
 //    바깥 크기는 CSS transform 배율로만 바꾼다.
 //  - size : "fit"(창에 맞춤) 또는 배율(0.75·1·1.25·1.5·2). 지금 창(전체화면이면 화면)보다 큰 크기를 고르면
-//           알림을 띄우고 창에 맞춤으로 바꾼다. 전체화면에서도 크기를 고를 수 있다.
+//           창에 맞춤으로 바꾸고 잠깐 나왔다 사라지는 메시지(토스트)로 알린다. 전체화면에서도 크기를 고를 수 있다.
 //  - pad  : "show" | "hide" (가상 패드). PC 모드는 게임 화면 아래, 모바일 모드는 게임 화면(필드) 위에 겹쳐 보이고
 //           모바일 모드에서는 필드가 아닐 때(전투·대화·메뉴) 자동으로 숨긴다.
 // 설정은 localStorage "display_settings" 에 저장된다.
@@ -105,9 +105,9 @@ function availableSize() {
   const body = document.body;
   const full = body.classList.contains("is-fullscreen");
   const inFlow = (el) => el && el.parentElement !== $("game-wrapper") && getComputedStyle(el).display !== "none" && getComputedStyle(el).position !== "fixed";
-  // 게임 화면 아래에 쌓이는 요소(PC 패드·안내문·광고)의 높이만큼 뺀다
+  // 게임 화면 아래에 쌓이는 요소(PC 패드·광고)의 높이만큼 뺀다
   let below = 0;
-  [$("virtual-pad"), document.querySelector(".controls-hint"), $("ad-slot")].forEach(el => { if (inFlow(el)) below += el.offsetHeight + 8; });
+  [$("virtual-pad"), $("ad-slot")].forEach(el => { if (inFlow(el)) below += el.offsetHeight + 8; });
   return { w: window.innerWidth - (full ? 0 : 16), h: window.innerHeight - below - (full ? 0 : 16) };
 }
 
@@ -129,7 +129,7 @@ function fitGameToScreen() {
   pad.style.maxWidth = isMobileMode() ? "" : `${Math.max(320, Math.round(GAME_W * s))}px`;
 }
 
-// 화면 크기 선택. 지금 창보다 크면 알림 후 '창에 맞춤'
+// 화면 크기 선택. 지금 창보다 크면 '창에 맞춤'으로 바꾸고 토스트로 알린다 (확인 버튼 없음)
 function setDisplaySize(id) {
   if (id !== "fit") {
     const sc = +id;
@@ -140,7 +140,7 @@ function setDisplaySize(id) {
       Display.settings.size = "fit";
       saveDisplaySettings();
       applyDisplay();
-      uiAlert(`${sizeLabel(sc)} 은(는) 지금 ${document.fullscreenElement ? "화면" : "창"}보다 커서 표시할 수 없습니다.\n'창에 맞춤'으로 바꿨습니다. (지금 ${sizeLabel(Display.scale)})`, "화면 크기");
+      showToast(`${sizeLabel(sc)} 은(는) 지금 ${document.fullscreenElement ? "화면" : "창"}보다 커서 '창에 맞춤'(${sizeLabel(Display.scale)})으로 바꿨습니다.`, true);
       return;
     }
   }

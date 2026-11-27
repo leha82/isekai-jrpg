@@ -38,6 +38,48 @@
    "price": 0,
    "desc": "루센의 소녀가 잃어버린 펜던트. 아버지의 유품이라고 한다."
   },
+  "map_south": {
+   "name": "남부 초원 지도",
+   "icon": "assets/img/icons/items/map_south.svg",
+   "type": "map",
+   "chapter": 1,
+   "nodes": [
+    "meadow",
+    "hazel",
+    "forest_road",
+    "elbrea"
+   ],
+   "price": 20,
+   "desc": "바람결 초원부터 하젤 마을, 속삭이는 숲길, 엘브레아까지 그려진 지도."
+  },
+  "map_capital": {
+   "name": "왕도 루센 지도",
+   "icon": "assets/img/icons/items/map_capital.svg",
+   "type": "map",
+   "chapter": 2,
+   "nodes": [
+    "hazel",
+    "forest_road",
+    "lucen",
+    "grom_pass"
+   ],
+   "price": 40,
+   "desc": "숲길 북쪽의 왕도 루센과 북문 너머 그롬 산길 어귀까지 그려진 지도."
+  },
+  "map_north": {
+   "name": "북부 지도",
+   "icon": "assets/img/icons/items/map_north.svg",
+   "type": "map",
+   "chapter": 3,
+   "nodes": [
+    "grom_pass",
+    "frost_plain",
+    "noct_gate",
+    "noct_keep"
+   ],
+   "price": 60,
+   "desc": "그롬 산길과 서리 평원, 녹턴 요새까지 그려진 북부 지도. 귀퉁이가 얼어 있다."
+  },
   "short_sword": {
    "name": "숏소드",
    "icon": "assets/img/icons/items/short_sword.svg",
@@ -274,7 +316,8 @@
     "potion",
     "ether",
     "leather_armor",
-    "luck_charm"
+    "luck_charm",
+    "map_south"
    ],
    "inn": 10,
    "upgrades": false
@@ -288,7 +331,9 @@
     "power_ring",
     "swift_anklet",
     "sage_pendant",
-    "guard_amulet"
+    "guard_amulet",
+    "map_capital",
+    "map_north"
    ],
    "inn": 20,
    "upgrades": false

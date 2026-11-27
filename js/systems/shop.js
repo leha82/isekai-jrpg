@@ -23,7 +23,9 @@ function renderShop() {
       const who = it.for && it.for.length ? it.for.map(c => { const d = memberDef(c); return d ? fmt(d.name) : c; }).join("·") : "누구나";
       desc = `<span class="bonus">${ITEM_KIND[it.type]} · ${escapeHtml(bonusText(it.bonus))}</span> · 장착: ${escapeHtml(who)}<br>` + desc;
     }
-    rows.push(row(`${iconTag(it.icon)} ${escapeHtml(it.name)} <small>(보유 ${player.inventory[id] || 0})</small>`, desc, it.price, `shopBuy('${id}')`));
+    if (it.type === "map") desc = `<span class="bonus">지도 · ${escapeHtml(mapItemNodes(it).map(n => (GameData.maps[n] || {}).name || n).join(" · "))}</span><br>` + desc;
+    const ownedMap = it.type === "map" && (player.inventory[id] || 0) > 0; // 지도는 한 장이면 충분하다
+    rows.push(row(`${iconTag(it.icon)} ${escapeHtml(it.name)} <small>(보유 ${player.inventory[id] || 0})</small>`, desc, it.price, `shopBuy('${id}')`, ownedMap ? "보유 중" : ""));
   });
   if (shop.upgrades) {
     const w = player.weaponLv * u.weaponCostPerLevel, a = player.armorLv * u.armorCostPerLevel;
@@ -34,9 +36,10 @@ function renderShop() {
     { kind: "shop", onClose: () => requestAutoSave("shop") }); // 상점(NPC) 이용이 끝나면 자동 저장
 }
 
-function row(title, desc, price, action) {
+// blocked: 살 수 없는 이유(버튼 글자). 비어 있으면 가격 버튼
+function row(title, desc, price, action, blocked = "") {
   return `<div class="item-row"><div class="grow"><b>${title}</b><br><span class="muted small">${desc}</span></div>
-    <button class="item-btn" onclick="${action}" ${player.gold < price ? "disabled" : ""}>${price} G</button></div>`;
+    <button class="item-btn" onclick="${action}" ${blocked || player.gold < price ? "disabled" : ""}>${blocked || `${price} G`}</button></div>`;
 }
 
 function shopInn(cost) {
@@ -52,10 +55,12 @@ function shopInn(cost) {
 function shopBuy(id) {
   const it = GameData.items.items[id];
   if (!it || player.gold < it.price) return;
+  if (it.type === "map" && (player.inventory[id] || 0) > 0) return;
   player.gold -= it.price;
   player.inventory[id] = (player.inventory[id] || 0) + 1;
   SFX.coin();
   if (isEquipItem(it)) showToast(`🛡️ ${it.name} 구입 — 메뉴의 장비(E)에서 장착하세요.`);
+  else if (it.type === "map") showToast(`🗺️ ${it.name} 구입 — 메뉴의 지도(M)에서 볼 수 있습니다.`);
   updateHUD();
   renderShop();
 }

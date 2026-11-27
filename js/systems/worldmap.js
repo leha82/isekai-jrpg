@@ -1,10 +1,13 @@
 // ==========================================
 // 지도 (메뉴 '지도' 탭 · 단축키 M)
-//  - 월드 지도: data/game.json 의 worldMap 위치에 지역을 그리고, 맵 출구(warps)로 이어진 길을 잇는다.
-//               가 본 지역만 이름이 보이고, 가 본 곳과 이어진 지역은 '???' 로 보인다. 실내 맵(parent)은 바깥 지역에 포함.
+//  - 월드 지도: **가지고 있는 지도 아이템**(data/items.json 의 type "map")마다 한 장. 위의 드롭다운으로 고른다.
+//               지도 아이템은 상점에서 사거나 퀘스트 보상(> item map_xxx +1)으로 얻는다. 챕터가 진행될수록 새 지역 지도가 생긴다.
+//               지도 아이템의 nodes(지역 맵 id)를 data/game.json 의 worldMap 위치에 네모 칸으로 그리고, 출구(warps)로 이어진 지역끼리 길을 잇는다.
+//               가 본 지역은 색과 이름이 또렷하게, 가 보지 못한 지역은 이름만 흐리게(비활성) 보인다. 실내 맵(parent)은 바깥 지역에 포함.
 //  - 현재 지역: 지금 맵 전체를 타일 평균색으로 축소해 그리고 출구·사람·내 위치를 표시한다.
 // ==========================================
 const MapView = { tileColors: null };
+let mapRegion = ""; // 지도 탭에서 고른 지도 아이템 id
 
 function worldNodeOf(mapId) {
   const wm = GameData.game.worldMap || {};
@@ -32,6 +35,19 @@ function worldEdges() {
   return [...edges.values()];
 }
 
+// 지도 아이템이 보여 주는 지역 (worldMap 에 위치가 있는 것만, 실내 맵은 바깥 지역으로)
+function mapItemNodes(it) {
+  const wm = GameData.game.worldMap || {};
+  return (it.nodes || []).map(worldNodeOf).filter((id, i, a) => id && GameData.maps[id] && wm[id] && a.indexOf(id) === i);
+}
+
+function ownedMaps() {
+  return Object.entries(GameData.items.items)
+    .filter(([id, it]) => it.type === "map" && (player.inventory[id] || 0) > 0)
+    .map(([id, it]) => ({ id, it }))
+    .sort((a, b) => (a.it.chapter || 0) - (b.it.chapter || 0));
+}
+
 function menuMap() {
   const m = World.map;
   const exits = [];
@@ -42,8 +58,21 @@ function menuMap() {
     const known = (player.visited || []).includes(w.to);
     exits.push({ to: w.to, text: `${dir} → ${known ? to.name : "???"}` });
   });
+  const owned = ownedMaps();
+  if (!owned.some(o => o.id === mapRegion)) {
+    // 처음 열면 지금 있는 지역이 들어 있는 지도 (없으면 가장 최근 챕터 지도)
+    const cur = worldNodeOf(player.map);
+    const here = owned.filter(o => mapItemNodes(o.it).includes(cur)).pop();
+    mapRegion = here ? here.id : (owned.length ? owned[owned.length - 1].id : "");
+  }
+  const world = owned.length
+    ? `<select class="map-select" onchange="mapRegion=this.value; SFX.cursor(); renderMenu()">${owned.map(o =>
+        `<option value="${o.id}" ${o.id === mapRegion ? "selected" : ""}>${o.it.chapter ? `${o.it.chapter}장 · ` : ""}${escapeHtml(o.it.name)}</option>`).join("")}</select>
+       <canvas id="map-world" width="400" height="260"></canvas>
+       <div class="map-legend"><span><i class="sq" style="background:#1b2240;border:1px solid #4ade80"></i>가 본 곳</span><span><i class="sq" style="background:#5a606e"></i>아직 못 가 본 곳</span><span><i style="background:#ef4444"></i>지금 위치</span></div>`
+    : `<p class="muted small map-none">가지고 있는 지도가 없습니다.<br>지도는 상점에서 사거나 퀘스트로 얻을 수 있습니다. 지도를 얻으면 여기에 나옵니다.</p>`;
   return `<div class="map-wrap">
-    <div class="map-box"><div class="section-title">월드 지도 <small>베일하르트 대륙</small></div><canvas id="map-world" width="360" height="250"></canvas></div>
+    <div class="map-box"><div class="section-title">월드 지도 <small>가진 지도 ${owned.length}장</small></div>${world}</div>
     <div class="map-box"><div class="section-title">${escapeHtml(m.name)} <small>${m.w}×${m.h}</small></div><canvas id="map-area"></canvas>
       <div class="map-legend"><span><i style="background:#ef4444"></i>나</span><span><i style="background:#60a5fa"></i>사람</span><span><i style="background:#d946ef"></i>출구</span></div>
       <div class="muted small">${exits.map(e => escapeHtml(e.text)).join(" · ") || "출구 없음"}</div></div>
@@ -52,7 +81,8 @@ function menuMap() {
 
 function drawMapTab() {
   const w = $("map-world"), a = $("map-area");
-  if (w) drawWorldMap(w);
+  const it = GameData.items.items[mapRegion];
+  if (w && it) drawWorldMap(w, it);
   if (a) drawAreaMap(a);
 }
 
@@ -60,67 +90,88 @@ const NODE_STYLE = {
   town: "#facc15", castle: "#fbbf24", field: "#4ade80", forest: "#16a34a", mountain: "#b45309", snow: "#7dd3fc", dungeon: "#a855f7"
 };
 
-function drawWorldMap(cv) {
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+  c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r);
+  c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y);
+  c.closePath();
+}
+
+// 지도 아이템 한 장: 양피지 바탕 위에 지역을 네모 칸으로 그린다
+function drawWorldMap(cv, item) {
   const c = cv.getContext("2d"), W = cv.width, H = cv.height;
   const wm = GameData.game.worldMap || {};
-  const pos = (id) => ({ x: 24 + wm[id].x / 100 * (W - 48), y: 18 + wm[id].y / 100 * (H - 36) });
-  const g = c.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, W * .7);
-  g.addColorStop(0, "#2a2f4a"); g.addColorStop(1, "#11142a");
+  const nodes = mapItemNodes(item);
+  // 양피지 바탕 + 가장자리 그을림 + 격자 + 테두리
+  const g = c.createRadialGradient(W / 2, H / 2, 30, W / 2, H / 2, W * .65);
+  g.addColorStop(0, "#efe0b8"); g.addColorStop(.75, "#d9c18c"); g.addColorStop(1, "#a9874f");
   c.fillStyle = g; c.fillRect(0, 0, W, H);
-  // 바다 같은 테두리 무늬
-  c.strokeStyle = "rgba(125,211,252,.12)"; c.lineWidth = 1;
-  for (let i = 0; i < 6; i++) { c.beginPath(); c.ellipse(W / 2, H / 2, W * .48 - i * 6, H * .46 - i * 5, 0, 0, Math.PI * 2); c.stroke(); }
-  // 나침반
-  c.fillStyle = "#fde68a"; c.font = "bold 11px 'Malgun Gothic', sans-serif"; c.textAlign = "center";
-  c.fillText("N", W - 18, 16); c.beginPath(); c.moveTo(W - 18, 20); c.lineTo(W - 22, 30); c.lineTo(W - 14, 30); c.fill();
+  c.strokeStyle = "rgba(110,80,40,.18)"; c.lineWidth = 1;
+  for (let x = 20; x < W; x += 40) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }
+  for (let y = 20; y < H; y += 40) { c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+  c.strokeStyle = "#6b4f2a"; c.lineWidth = 3; c.strokeRect(4, 4, W - 8, H - 8);
+  c.lineWidth = 1; c.strokeRect(9, 9, W - 18, H - 18);
+  // 지도 이름 · 나침반
+  c.fillStyle = "#4a3418"; c.font = "bold 12px 'Malgun Gothic', sans-serif"; c.textAlign = "left";
+  c.fillText(item.name, 16, 26);
+  c.textAlign = "center"; c.fillText("N", W - 24, 26);
+  c.beginPath(); c.moveTo(W - 24, 30); c.lineTo(W - 29, 42); c.lineTo(W - 19, 42); c.fill();
+  if (!nodes.length) return;
+
+  // 지역 위치(0~100)를 이 지도에 맞게 늘린다 (지역이 모인 범위 → 캔버스 안쪽)
+  const xs = nodes.map(id => wm[id].x), ys = nodes.map(id => wm[id].y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+  const BW = 88, BH = 34, padX = 20 + BW / 2, padTop = 50 + BH / 2, padBot = 16 + BH / 2;
+  const sx = (W - padX * 2) / Math.max(1, maxX - minX), sy = (H - padTop - padBot) / Math.max(1, maxY - minY);
+  const pos = (id) => ({
+    x: maxX === minX ? W / 2 : padX + (wm[id].x - minX) * sx,
+    y: maxY === minY ? (padTop + H - padBot) / 2 : padTop + (wm[id].y - minY) * sy
+  });
 
   const visited = visitedNodes();
   const cur = worldNodeOf(player.map);
-  const edges = worldEdges();
-  const known = new Set(visited);
-  edges.forEach(([a, b]) => { if (visited.has(a)) known.add(b); if (visited.has(b)) known.add(a); });
-  // 길
-  edges.forEach(([a, b]) => {
-    if (!known.has(a) || !known.has(b)) return;
+  const inMapSet = new Set(nodes);
+  // 길: 이 지도 안의 지역끼리. 둘 다 가 봤으면 실선, 아니면 점선
+  worldEdges().forEach(([a, b]) => {
+    if (!inMapSet.has(a) || !inMapSet.has(b)) return;
     const p = pos(a), q = pos(b);
     const both = visited.has(a) && visited.has(b);
-    c.strokeStyle = both ? "rgba(253,230,138,.75)" : "rgba(148,163,184,.4)";
+    c.strokeStyle = both ? "rgba(122,62,20,.85)" : "rgba(122,62,20,.35)";
     c.lineWidth = both ? 3 : 2;
-    c.setLineDash(both ? [] : [4, 4]);
+    c.setLineDash(both ? [] : [5, 4]);
     c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
   });
   c.setLineDash([]);
-  // 지역
-  Object.keys(wm).filter(id => wm[id].x !== undefined && GameData.maps[id]).forEach(id => {
-    if (!known.has(id)) return;
+  // 지역 칸 (네모). 가 본 곳 = 진한 칸 + 지역 색 테두리 + 밝은 이름 / 못 가 본 곳 = 회색 칸 + 흐린 이름 (비활성)
+  nodes.forEach(id => {
     const p = pos(id), m = GameData.maps[id];
     const seen = visited.has(id);
-    const color = seen ? (NODE_STYLE[m.bgm] || NODE_STYLE[m.battleBg] || "#e2e8f0") : "#475569";
-    const town = ["town", "castle"].includes(m.bgm);
-    c.fillStyle = "#0b0d18"; c.strokeStyle = color; c.lineWidth = 2;
-    c.beginPath();
-    if (town) c.rect(p.x - 7, p.y - 7, 14, 14); else c.arc(p.x, p.y, 7, 0, Math.PI * 2);
-    c.fill(); c.stroke();
-    c.fillStyle = color;
-    c.beginPath();
-    if (town) c.rect(p.x - 4, p.y - 4, 8, 8); else c.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    const color = NODE_STYLE[m.bgm] || NODE_STYLE[m.battleBg] || "#e2e8f0";
+    const x = p.x - BW / 2, y = p.y - BH / 2;
+    c.save();
+    c.shadowColor = "rgba(60,40,10,.35)"; c.shadowOffsetY = 2; c.shadowBlur = 3;
+    roundRect(c, x, y, BW, BH, 5);
+    c.fillStyle = seen ? "#1b2240" : "rgba(90,96,110,.55)";
     c.fill();
-    const label = seen ? m.name : "???";
-    c.font = `${id === cur ? "bold " : ""}11px 'Malgun Gothic', sans-serif`;
-    // 이름표는 지점 오른쪽 (화면 오른쪽 끝이면 왼쪽)
-    const right = p.x < W - 90;
-    c.textAlign = right ? "left" : "right";
-    const lx = p.x + (right ? 12 : -12), ly = p.y + 4;
-    c.lineWidth = 3; c.strokeStyle = "#0b0d18"; c.strokeText(label, lx, ly);
-    c.fillStyle = id === cur ? "#fde68a" : seen ? "#e2e8f0" : "#94a3b8"; c.fillText(label, lx, ly);
+    c.restore();
+    roundRect(c, x, y, BW, BH, 5);
+    c.lineWidth = id === cur ? 3 : 2;
+    c.strokeStyle = id === cur ? "#ef4444" : seen ? color : "rgba(70,70,80,.6)";
+    c.stroke();
+    c.fillStyle = seen ? color : "rgba(70,70,80,.45)";
+    c.fillRect(x + 4, y + 4, BW - 8, 4);
+    c.font = `${seen ? "bold " : ""}11px 'Malgun Gothic', sans-serif`;
+    c.textAlign = "center";
+    c.fillStyle = seen ? "#fff7d6" : "rgba(230,230,235,.6)";
+    c.fillText(m.name, p.x, p.y + 9, BW - 8);
   });
-  // 현재 위치
-  if (cur) {
+  // 지금 위치 표시 (이 지도에 있을 때)
+  if (cur && inMapSet.has(cur)) {
     const p = pos(cur);
-    c.strokeStyle = "#ef4444"; c.lineWidth = 2;
-    c.beginPath(); c.arc(p.x, p.y, 12, 0, Math.PI * 2); c.stroke();
     c.fillStyle = "#ef4444";
-    c.beginPath(); c.moveTo(p.x, p.y - 12); c.lineTo(p.x - 6, p.y - 24); c.lineTo(p.x + 6, p.y - 24); c.fill();
+    c.beginPath(); c.moveTo(p.x, p.y - BH / 2 - 2); c.lineTo(p.x - 6, p.y - BH / 2 - 13); c.lineTo(p.x + 6, p.y - BH / 2 - 13); c.fill();
   }
 }
 
