@@ -383,7 +383,7 @@
    {
     "type": "special",
     "name": "흑염 참격",
-    "power": 1.0,
+    "power": 1,
     "target": "all",
     "weight": 1,
     "fx": "dark"
