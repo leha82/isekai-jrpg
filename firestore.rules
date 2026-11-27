@@ -19,11 +19,20 @@ service cloud.firestore {
       );
     }
 
-    // 클라우드 세이브: 로그인한 사용자는 자기 uid 문서(세이브 1개)만 읽고 쓸 수 있다.
+    // 클라우드 세이브: 로그인한 사용자는 자기 uid 아래만 읽고 쓸 수 있다.
+    //  - saves/{uid}               : 슬롯 도입 전 단일 세이브 (읽기·삭제만. 게임이 자동 저장 슬롯으로 옮긴다)
+    //  - saves/{uid}/slots/{slot}  : 자동 저장 1개(auto) + 수동 저장 5개(1~5)
     match /saves/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['version', 'savedAt', 'player', 'inventory', 'party']);
+
+      match /slots/{slot} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && slot in ['auto', '1', '2', '3', '4', '5']
+          && request.resource.data.keys().hasOnly(['version', 'savedAt', 'player', 'inventory', 'party']);
+      }
     }
 
     // 시나리오 복호화 키: 게임이 스크립트를 풀어야 하므로 읽기는 누구나.

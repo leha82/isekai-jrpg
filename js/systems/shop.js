@@ -24,7 +24,8 @@ function renderShop() {
     rows.push(row(`⚔️ 파티 무기 연마 <small>(현재 Lv.${player.weaponLv})</small>`, `전원 공격력 +${u.weaponAtk}, 마력 +${u.weaponMatk}`, w, `shopUpgrade('weapon', ${w})`));
     rows.push(row(`🛡️ 파티 방어구 강화 <small>(현재 Lv.${player.armorLv})</small>`, `전원 방어력 +${u.armorDef}, 최대 HP +${u.armorHp}`, a, `shopUpgrade('armor', ${a})`));
   }
-  openWindow(`🏪 ${shop.name} — 보유 ${player.gold.toLocaleString()} G`, rows.join("") || `<p class="muted">파는 물건이 없습니다.</p>`);
+  openWindow(`🏪 ${shop.name} — 보유 ${player.gold.toLocaleString()} G`, rows.join("") || `<p class="muted">파는 물건이 없습니다.</p>`,
+    { kind: "shop", onClose: () => requestAutoSave("shop") }); // 상점(NPC) 이용이 끝나면 자동 저장
 }
 
 function row(title, desc, price, action) {

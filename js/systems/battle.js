@@ -361,8 +361,7 @@ async function endBattle(result) {
   playBGM(World.map.bgm);
   updateHUD();
   await fadeTo(0, 250);
-  if (result === "win") {
-    if (B.win) runScene(B.win);
-    else if (!B.boss) saveGame(true); // 일반 전투 승리 직후 자동 저장 (이 기기에만)
-  }
+  // 전투에서 벗어나면 자동 저장. 승리 장면이 이어지면 그 대화가 끝날 때 저장된다.
+  if (result === "win" && B.win) runScene(B.win);
+  else requestAutoSave("battle");
 }

@@ -1,5 +1,6 @@
 // ==========================================
-// 공통 UI: 토스트, 대화창(초상화·타자 효과), 창(모달), 이름 입력, 화면 스케일링
+// 공통 UI: 토스트, 시스템 알림·확인 창(uiAlert/uiConfirm), 대화창(초상화·타자 효과), 창(모달), 이름 입력
+// 화면 크기·레이아웃은 js/core/display.js
 // ==========================================
 const $ = (id) => document.getElementById(id);
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -69,10 +70,94 @@ function finishTyping() {
   $("dialog-text").textContent = Dialog.full;
 }
 
+// ---------- 시스템 알림·확인 창 ----------
+// 브라우저 alert/confirm 은 쓰지 않는다. 모든 알림·확인은 이 창으로 띄운다.
+// uiDialog(메시지, { title, buttons:[{label, value, primary, danger}], cancelValue }) → Promise<value>
+const SysDialog = { open: false, resolve: null, buttons: [], focus: 0, cancelValue: null, prevState: null, queue: [] };
+
+function uiDialog(msg, opts = {}) {
+  return new Promise(resolve => {
+    const req = { msg, opts, resolve };
+    if (SysDialog.open) { SysDialog.queue.push(req); return; }
+    showSysDialog(req);
+  });
+}
+
+function showSysDialog({ msg, opts, resolve }) {
+  const buttons = opts.buttons && opts.buttons.length ? opts.buttons : [{ label: "확인", value: true, primary: true }];
+  Object.assign(SysDialog, { open: true, resolve, buttons, cancelValue: "cancelValue" in opts ? opts.cancelValue : buttons[buttons.length - 1].value });
+  SysDialog.focus = Math.max(0, buttons.findIndex(b => b.primary));
+  SysDialog.prevState = gameState;
+  gameState = "SYSTEM";
+  if (typeof releaseAllDirs === "function") releaseAllDirs();
+  $("sys-title").textContent = opts.title || "";
+  $("sys-msg").textContent = msg;
+  const box = $("sys-btns");
+  box.innerHTML = "";
+  buttons.forEach((b, i) => {
+    const el = document.createElement("button");
+    el.className = "sys-btn" + (b.primary ? " primary" : "") + (b.danger ? " danger" : "");
+    el.textContent = b.label;
+    el.onclick = () => closeSysDialog(b.value);
+    el.onmouseenter = () => { SysDialog.focus = i; paintSysFocus(); };
+    box.appendChild(el);
+  });
+  paintSysFocus();
+  $("sys-dialog").classList.add("show");
+}
+
+function paintSysFocus() {
+  [...$("sys-btns").children].forEach((el, i) => el.classList.toggle("focus", i === SysDialog.focus));
+}
+
+function closeSysDialog(value) {
+  if (!SysDialog.open) return;
+  const r = SysDialog.resolve;
+  SysDialog.open = false;
+  SysDialog.resolve = null;
+  $("sys-dialog").classList.remove("show");
+  if (gameState === "SYSTEM") gameState = SysDialog.prevState;
+  if (typeof SFX !== "undefined") (value === SysDialog.cancelValue && SysDialog.buttons.length > 1 ? SFX.cancel : SFX.cursor)();
+  r(value);
+  const next = SysDialog.queue.shift();
+  if (next) showSysDialog(next);
+}
+
+// 키보드: ←→/Tab 이동, Enter/Space 선택, Esc 취소. input.js 가 가장 먼저 호출한다.
+function sysDialogKey(e) {
+  if (!SysDialog.open) return false;
+  e.preventDefault();
+  const n = SysDialog.buttons.length;
+  if (e.key === "ArrowLeft" || e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) { SysDialog.focus = (SysDialog.focus + n - 1) % n; paintSysFocus(); }
+  else if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === "Tab") { SysDialog.focus = (SysDialog.focus + 1) % n; paintSysFocus(); }
+  else if ((e.key === "Enter" || e.key === " ") && !e.repeat) closeSysDialog(SysDialog.buttons[SysDialog.focus].value);
+  else if (e.key === "Escape") closeSysDialog(SysDialog.cancelValue);
+  return true;
+}
+
+function uiAlert(msg, title = "알림") {
+  return uiDialog(msg, { title, buttons: [{ label: "확인", value: true, primary: true }] });
+}
+
+// → Promise<boolean>
+function uiConfirm(msg, opts = {}) {
+  return uiDialog(msg, {
+    title: opts.title || "확인",
+    buttons: [{ label: opts.ok || "확인", value: true, primary: !opts.danger, danger: !!opts.danger }, { label: opts.cancel || "취소", value: false }],
+    cancelValue: false
+  });
+}
+
 // ---------- 창(모달) ----------
-// openWindow(제목, html, { tabs:[{id,label}], active, onTab, wide })
+// openWindow(제목, html, { tabs:[{id,label}], active, onTab, onClose })
+// 창을 열기 전 상태(TITLE/WORLD)를 기억했다가 닫을 때 되돌린다. 창 안에서 다시 열면(탭 전환) 그대로 유지.
+const Modal = { prev: "WORLD", onClose: null, kind: "" };
+
 function openWindow(title, html, opts = {}) {
+  if (gameState !== "MODAL") Modal.prev = gameState;
   gameState = "MODAL";
+  Modal.onClose = opts.onClose || null;
+  Modal.kind = opts.kind || "";
   $("modal-title").textContent = title;
   const tabs = $("modal-tabs");
   tabs.innerHTML = "";
@@ -88,10 +173,17 @@ function openWindow(title, html, opts = {}) {
   $("modal-ui").style.display = "flex";
 }
 
+function modalOpen(kind) { return gameState === "MODAL" && (!kind || Modal.kind === kind); }
+
 function closeModal() {
+  if ($("modal-ui").style.display === "none") return;
   $("modal-ui").style.display = "none";
-  if (gameState === "MODAL") gameState = "WORLD";
+  if (gameState === "MODAL") gameState = Modal.prev || "WORLD";
+  const cb = Modal.onClose;
+  Modal.onClose = null;
+  Modal.kind = "";
   if (typeof updateHUD === "function") updateHUD();
+  if (cb) cb();
 }
 
 // ---------- 이름 입력 ----------
@@ -116,18 +208,6 @@ function askHeroName() {
     input.onkeydown = (e) => { e.stopPropagation(); if (e.key === "Enter") done(); };
   });
 }
-
-// ---------- 반응형 스케일링 (내부 해상도 640x480 유지) ----------
-const GAME_W = 648, GAME_H = 488; // 캔버스 640x480 + 테두리 4px*2
-function fitGameToScreen() {
-  const padArea = 190; // 하단 가상 패드 + 안내문 높이
-  const s = Math.max(0.35, Math.min(1, (window.innerWidth - 16) / GAME_W, (window.innerHeight - padArea) / GAME_H));
-  $("game-container").style.transform = `scale(${s})`;
-  const wrap = $("game-wrapper");
-  wrap.style.width = `${GAME_W * s}px`;
-  wrap.style.height = `${GAME_H * s}px`;
-}
-window.addEventListener("resize", fitGameToScreen);
 
 // 마우스로 누른 버튼이 포커스를 가지면 Space/Enter 가 두 번 처리된다. 버튼이 포커스를 받지 않게 막는다.
 document.addEventListener("mousedown", (e) => {

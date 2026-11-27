@@ -109,8 +109,9 @@ function runSteps(steps, start) {
     }
     const stop = execScenarioCommand(s);
     i++;
-    if (stop) return; // shop / battle / warp / ending 은 장면을 끝낸다
+    if (stop) return; // shop / battle / warp / ending 은 장면을 끝낸다 (상점 닫기·전투 종료·맵 이동 때 자동 저장)
   }
+  requestAutoSave("event"); // NPC 대화·이벤트가 끝나면 자동 저장
 }
 
 function execScenarioCommand(c) {
@@ -126,7 +127,7 @@ function execScenarioCommand(c) {
     case "heal": healParty(); break;
     case "sfx": playSFX(c.id); break;
     case "bgm": playBGM(c.id); break;
-    case "save": saveGame(true, true); break;
+    case "save": saveGame(); break;
     case "weapon": case "armor": applyGearUpgrade(c.name, c.amount); break;
     case "gold": player.gold = Math.max(0, player.gold + c.amount); break;
     case "exp": {
@@ -153,6 +154,7 @@ function showEnding() {
   $("hud-left").style.display = "none";
   $("hud-right").style.display = "none";
   $("ov-continue").style.display = "none";
+  $("ov-load").style.display = "none";
   $("ov-auth").style.display = "none";
   $("ov-title").textContent = scnText("ending_title", "THE END");
   $("ov-subtitle").textContent = `${player.name} · Lv.${player.lv}`;

@@ -28,11 +28,12 @@
 index.html / admin.html
 css/game.css · admin.css
 js/config.js            Firebase 설정, MASTER_EMAIL, GitHub 저장소, 폴더, DATA_FILES
-js/core/                assets.js (데이터·이미지 로더, 시트 좌표) · state.js (상태·파티·레벨업·장비) · audio.js (MP3 BGM/SFX) · ui.js (토스트·대화창·창·이름 입력·스케일링)
+js/core/                assets.js (데이터·이미지 로더, 시트 좌표) · state.js (상태·파티 순서·리더·레벨업·장비) · audio.js (MP3 BGM/SFX, 볼륨) · ui.js (토스트·알림/확인 창·대화창·창·이름 입력) · display.js (화면 크기·레이아웃·전체 화면)
+js/ai/ai-client.js      AI 연결 (Claude SDK·Gemini·ChatGPT), AI 연결 메뉴 — [14_ai.md](14_ai.md)
 js/scenario/            crypto.js (AES-GCM) · format.js (파서·검사기) · context.js (검사용 데이터 목록) · runtime.js (로드·장면 실행·퀘스트·엔딩)
 js/world/world.js       맵 렌더링(카메라·타일 애니메이션)·이동·상호작용·워프·인카운트
-js/systems/             hud.js (HUD·메뉴) · shop.js · battle.js (전투 로직) · battle-view.js (전투 캔버스 연출) · save.js
-js/game/                input.js (키보드·가상 패드) · main.js (부팅·타이틀·새 게임)
+js/systems/             hud.js (HUD·메뉴·설정) · shop.js · battle.js (전투 로직) · battle-view.js (전투 캔버스 연출) · save.js (슬롯·자동 저장·클라우드 동기화·저장 창·로그인)
+js/game/                input.js (키보드·단축키·가상 패드) · main.js (부팅·타이틀·새 게임)
 js/firebase/game-cloud.js   게임용 Firebase module → window.cloud
 js/admin/               admin.js (진입) · core.js (백엔드·공용) · tab-scenario / tab-events / tab-maps / tab-actors / tab-battle / tab-resources / tab-admins
 data/                   game · tiles · sprites · characters · monsters · skills · items · battle · audio · assets .json, maps/*.json
@@ -44,12 +45,12 @@ firestore.rules         Firestore 보안 규칙 원본 (콘솔에 게시해야 �
 ```
 
 ### 스크립트 로드 순서 (`index.html`)
-`config → core/assets → core/state → core/audio → core/ui → scenario/crypto → format → context → runtime → world/world → systems/hud → shop → battle-view → battle → save → game/input → game/main → (module) firebase/game-cloud`
+`config → core/assets → core/state → core/audio → core/ui → core/display → ai/ai-client → scenario/crypto → format → context → runtime → world/world → systems/hud → shop → battle-view → battle → save → game/input → game/main → (module) firebase/game-cloud`
 - 일반 스크립트끼리 전역을 공유한다. 최상위에서 바로 실행되는 코드가 쓰는 것만 앞에 있으면 된다.
 - 파일을 추가하면 `index.html`(관리자에서도 쓰면 `admin.html`)과 이 표를 갱신한다.
 
 ### 부팅 흐름
-1. `main.js boot()` → `loadGameData()` (data JSON 9개 + 맵 12개 + 이미지) → 진행률 표시
+1. `main.js boot()` → `applyDisplay()` → `loadGameData()` (data JSON 9개 + 맵 12개 + 이미지) → 진행률 표시
 2. `loadScenario()` → 암호 파일 + 복호화 키(Firestore REST 로 `scriptKeys/{keyId}` 공개 읽기 — SDK 불필요) → 복호화 → `parseAll` + `validate(buildScenarioContext())`
 3. 타이틀 활성화 (`title` 배경음). 실패하면 원인과 '다시 시도'.
 
@@ -59,35 +60,45 @@ firestore.rules         Firestore 보안 규칙 원본 (콘솔에 게시해야 �
 - 이동: 한 칸 165ms 보간, 걷기 프레임 교차, 키를 누르고 있으면 연속 이동. 카메라는 주인공 중심(맵 경계에서 고정).
 
 ## 상태 머신 (`gameState`)
-`LOADING → TITLE → WORLD ⇄ DIALOG / MODAL / BATTLE → ENDING`
+`LOADING → TITLE → WORLD ⇄ DIALOG / MODAL / BATTLE → ENDING` (+ 어느 상태에서든 `SYSTEM`)
 | 값 | 의미 | 입력 |
 |---|---|---|
 | `TITLE` | 타이틀 | 버튼 |
-| `WORLD` | 필드 | 이동·조사·메뉴 |
+| `WORLD` | 필드 | 이동·조사·단축키 |
 | `DIALOG` | 대화창 | Space/Enter/클릭 (타자 중이면 한 번에 표시) |
-| `MODAL` | 메뉴·상점 | 버튼, Esc |
+| `MODAL` | 메뉴·상점·저장·설정·AI 창. 열기 전 상태를 `Modal.prev` 에 기억했다가 닫을 때 되돌린다 (타이틀에서 연 설정 창 → TITLE) | 버튼, Esc, 같은 단축키로 닫기 |
+| `SYSTEM` | 알림·확인 창(`uiConfirm` 등). 닫히면 직전 상태로 | ←→, Enter/Space, Esc |
 | `BATTLE` | 전투 | 커맨드 버튼·숫자키 |
 | `ENDING` | 엔딩 | 재시작 버튼 |
 
 ## Firebase
 | Firestore 경로 | 읽기 | 쓰기 | 용도 |
 |---|---|---|---|
-| `saves/{uid}` | 본인 | 본인 (키 제한) | 클라우드 세이브 |
+| `saves/{uid}/slots/{auto\|1..5}` | 본인 | 본인 (슬롯 id·키 제한) | 클라우드 세이브 슬롯 |
+| `saves/{uid}` | 본인 | 본인 (키 제한) | 슬롯 도입 전 단일 세이브 (읽어서 자동 저장 슬롯으로 옮김) |
 | `scriptKeys/{keyId}` | 누구나 | 생성·삭제: 관리자 | 시나리오 복호화 키 |
 | `admin/{doc}` | 관리자 | 관리자 | GitHub 토큰 (`admin/github`) |
 | `config/admins` | 관리자 | 최고 관리자 | 관리자 이메일 목록 |
 관리자 = 최고 관리자(`MASTER_EMAIL`) 또는 `config/admins.emails` 에 있는 계정 ([10_firebase_setup.md](10_firebase_setup.md)).
 
-## 세이브 데이터 (version 2)
+## 세이브 데이터 (version 2, 슬롯마다 한 개)
 ```json
 { "version": 2, "savedAt": "...",
   "player": { "name": "유진", "map": "lucen", "x": 16, "y": 20, "dir": "up", "lv": 5, "exp": 12, "nextExp": 87, "gold": 340,
-              "weaponLv": 2, "armorLv": 1, "storyFlag": 2, "quests": { "main_forest": "done", "side_herb": "done", "main_north": "active" }, "vars": { "chest_forest": 1 } },
+              "weaponLv": 2, "armorLv": 1, "storyFlag": 2, "quests": { "main_forest": "done", "side_herb": "done", "main_north": "active" }, "vars": { "chest_forest": 1 },
+              "focusQuest": "main_north" },
   "inventory": { "potion": 3, "hi_potion": 0, "ether": 2, "herb": 0, "pendant": 0 },
   "party": [ { "id": "hero", "hp": 110, "maxHp": 120, "mp": 40, "maxMp": 45, "atk": 28, "matk": 38, "def": 12, "unlocked": true }, ... ] }
 ```
 - 퀘스트·변수는 `player` 안에 넣어, Firestore 규칙의 최상위 키 제한(`version, savedAt, player, inventory, party`)을 바꾸지 않았다.
 - version 1 은 `migrateSave()` 가 변환한다.
+- `party` 배열 순서가 파티 순서다. 첫 번째 합류 멤버가 리더(맵을 걷는 캐릭터).
+- 같은 구조를 이 기기 `localStorage["wedge_save_{slot}"]` 와 Firestore `saves/{uid}/slots/{slot}` 에 저장한다 ([07_systems.md](07_systems.md#세이브--불러오기-)).
+
+## 화면 크기 (`js/core/display.js`)
+- 내부 해상도 640×480(+테두리 4px) 고정. `#game-container` 에 `transform: scale(s)` 를 건다.
+- `s` = 선택한 배율과 "창에 맞는 최대 배율" 중 작은 값 (최대 2배). 창에 맞는 배율은 화면 아래 요소(가상 패드·안내문·광고 자리)의 실제 높이를 빼고 계산한다.
+- 레이아웃은 `body` 클래스로 바꾼다: `layout-pc`, `layout-mobile-portrait`, `layout-mobile-landscape`, `pad-hidden`, `is-fullscreen`.
 
 ## 알려진 주의점
 - 버튼이 포커스를 가지면 Space 가 두 번 처리되므로 `mousedown` 기본 동작을 막는다.

@@ -24,7 +24,8 @@ function newGameState(heroName) {
     weaponLv: 1, armorLv: 1, storyFlag: 0,
     inventory: { ...g.startItems },
     quests: {},   // id → "active" | "done"
-    vars: {}      // 시나리오 변수 (> set)
+    vars: {},     // 시나리오 변수 (> set)
+    focusQuest: "" // HUD 에 한 줄로 보여 줄 퀘스트 id (비어 있으면 메인 퀘스트)
   };
   Object.keys(GameData.items.items).forEach(id => { if (!(id in player.inventory)) player.inventory[id] = 0; });
   party = GameData.characters.party.map(makeMember);
@@ -33,6 +34,24 @@ function newGameState(heroName) {
 function partyMember(id) { return party.find(m => m.id === id) || null; }
 function memberDef(id) { return GameData.characters.party.find(c => c.id === id) || null; }
 function activeParty() { return party.filter(m => m.unlocked); }
+// 리더 = 파티 순서상 첫 번째 합류 멤버. 맵을 걷는 캐릭터와 HUD 의 주 캐릭터가 된다.
+function leader() { return activeParty()[0] || party[0]; }
+
+// 합류 멤버끼리 순서를 바꾼다 (delta: -1 위로, +1 아래로, "top" 리더로)
+function moveMember(id, delta) {
+  const act = activeParty();
+  const i = act.findIndex(m => m.id === id);
+  if (i < 0) return false;
+  const j = delta === "top" ? 0 : i + delta;
+  if (j < 0 || j >= act.length || j === i) return false;
+  const order = act.slice();
+  const [m] = order.splice(i, 1);
+  order.splice(j, 0, m);
+  // party 배열에서 합류 멤버가 있던 자리들에 새 순서대로 채워 넣는다
+  const slots = party.map((p, k) => p.unlocked ? k : -1).filter(k => k >= 0);
+  slots.forEach((k, n) => { party[k] = order[n]; });
+  return true;
+}
 
 // {hero} → 주인공 이름
 function fmt(text) {

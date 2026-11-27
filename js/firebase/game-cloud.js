@@ -1,17 +1,20 @@
 // ==========================================
 // Firebase 연결 (게임용, ES module)
 // 게임 본체는 Firebase를 직접 import 하지 않고 window.cloud 만 사용한다.
-//  - signIn / signOut / load / save : 클라우드 세이브 (saves/{uid})
+//  - signIn / signOut
+//  - loadSlots / saveSlot / deleteSlot : 세이브 슬롯 saves/{uid}/slots/{auto|1..5}
+//  - loadLegacy : 슬롯 도입 전 단일 세이브 saves/{uid} (자동 저장 슬롯으로 옮길 때만 읽는다)
 // 준비가 끝나면 document 에 "cloud-ready" 이벤트를 보낸다.
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 const app = initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const saveRef = () => doc(db, "saves", auth.currentUser.uid);
+const uid = () => auth.currentUser.uid;
+const slotRef = (id) => doc(db, "saves", uid(), "slots", String(id));
 
 window.cloud = {
   signIn() {
@@ -20,11 +23,18 @@ window.cloud = {
     return signInWithPopup(auth, provider);
   },
   signOut() { return signOut(auth); },
-  async load() {
-    const snap = await getDoc(saveRef());
-    return snap.exists() ? snap.data() : null;
+  async loadSlots() {
+    const snap = await getDocs(collection(db, "saves", uid(), "slots"));
+    const out = {};
+    snap.forEach(d => { out[d.id] = d.data(); });
+    return out;
   },
-  save(data) { return setDoc(saveRef(), data); }
+  saveSlot(id, data) { return setDoc(slotRef(id), data); },
+  deleteSlot(id) { return deleteDoc(slotRef(id)); },
+  async loadLegacy() {
+    const snap = await getDoc(doc(db, "saves", uid()));
+    return snap.exists() ? snap.data() : null;
+  }
 };
 
 document.dispatchEvent(new Event("cloud-ready"));

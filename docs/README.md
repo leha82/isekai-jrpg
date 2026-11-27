@@ -13,13 +13,14 @@
 | [04_characters.md](04_characters.md) | 파티 캐릭터·NPC 설정, 기본 능력치, 성장 |
 | [05_battle.md](05_battle.md) | 턴제 전투 흐름, 커맨드·스킬, 데미지 공식 |
 | [06_monsters.md](06_monsters.md) | 몬스터 도감, 출현 지역·확률, 보스 |
-| [07_systems.md](07_systems.md) | HUD·메뉴, 퀘스트, 성장, 경제·상점, 세이브 |
+| [07_systems.md](07_systems.md) | 타이틀·HUD·메뉴·설정(화면·사운드), 알림 창, 퀘스트, 성장, 경제·상점, 세이브 슬롯 |
 | [08_tech.md](08_tech.md) | 코드 구조, 상태 머신, 세이브 데이터 포맷, 그래픽·사운드 엔진 |
 | [09_roadmap.md](09_roadmap.md) | 구현 현황, 다음 마일스톤, 아이디어 백로그 |
 | [10_firebase_setup.md](10_firebase_setup.md) | Firebase 설정 가이드 (클라우드 세이브·시나리오 키·관리자 목록) |
 | [11_scenario.md](11_scenario.md) | 시나리오 스크립트 문법, 암호화 구조 |
 | [12_assets.md](12_assets.md) | 그래픽·사운드 생성기 (도트·초상화·아이콘·BGM·효과음·맵) |
 | [13_admin.md](13_admin.md) | 관리자 모드 메뉴 (시나리오·이벤트·맵·캐릭터·몬스터·전투·리소스·관리자 지정) |
+| [14_ai.md](14_ai.md) | AI 연결 (Claude·Gemini·ChatGPT) — 향후 NPC 자동 대화 기반 |
 | [reference/arcadia_isekai_jrpg_spec.md](reference/arcadia_isekai_jrpg_spec.md) | 최초 통합 기획서 원본 (수정하지 않고 보관) |
 
 ## 운영 규칙
@@ -29,5 +30,5 @@
 2. **상태 표기:** 각 항목에 `✅ 구현됨`, `🔲 계획`, `💡 아이디어` 중 하나를 붙인다.
 3. **새 기능 작업 순서:** 해당 문서에 `🔲 계획`으로 먼저 적음 → 코드 구현 → `✅ 구현됨`으로 변경 → [09_roadmap.md](09_roadmap.md) 갱신.
 4. **원본 기획서(`reference/`)는 수정하지 않는다.** 바뀐 결정은 주제별 문서에 기록한다.
-5. 새 주제가 생기면 `14_xxx.md` 식으로 번호를 이어 붙이고 위 표에 추가한다.
+5. 새 주제가 생기면 `15_xxx.md` 식으로 번호를 이어 붙이고 위 표에 추가한다.
 6. 요구사항이 어느 문서에 해당하는지는 루트 [CLAUDE.md](../CLAUDE.md)의 "요구사항 → 문서 매핑" 표를 따른다. AI 에이전트는 요청 하나마다 코드와 문서를 함께 수정한다.

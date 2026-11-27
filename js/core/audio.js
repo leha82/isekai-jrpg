@@ -2,13 +2,14 @@
 // 오디오 엔진 — MP3 배경음(BGM)·효과음(SFX)을 Web Audio 로 재생
 //  - BGM 은 loopStart/loopEnd 로 끊김 없이 반복 (data/audio.json 의 loop 길이 + 디코더 지연)
 //  - 브라우저 자동재생 정책 때문에 AudioContext 는 첫 클릭/키 입력 때 만든다 (initAudio)
+// 볼륨: 전체(master) × 배경음(bgm)/효과음(sfx). 설정 메뉴에서 조절하고, 켜고 끄기는 HUD 아이콘(N).
 // 시나리오의 "> sfx id" / "> bgm id" 는 data/audio.json 의 id 를 쓴다.
 // ==========================================
 const AudioSys = {
   ctx: null, bgmGain: null, sfxGain: null,
   buffers: {}, loading: {},
   current: null, currentId: null, wantedId: null,
-  settings: { bgm: 0.55, sfx: 0.8, muted: false }
+  settings: { master: 1, bgm: 0.55, sfx: 0.8, muted: false }
 };
 
 function loadAudioSettings() {
@@ -41,7 +42,7 @@ function initAudio() {
 
 function applyVolumes() {
   if (!AudioSys.ctx) return;
-  const m = AudioSys.settings.muted ? 0 : 1;
+  const m = AudioSys.settings.muted ? 0 : (AudioSys.settings.master ?? 1);
   AudioSys.bgmGain.gain.value = AudioSys.settings.bgm * m;
   AudioSys.sfxGain.gain.value = AudioSys.settings.sfx * m;
 }

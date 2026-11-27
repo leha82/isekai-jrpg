@@ -6,7 +6,7 @@
 ## 기획 문서
 `docs/` 폴더에서 주제별로 관리한다. 작업 전에 관련 문서를 먼저 읽는다.
 - `docs/README.md` — 문서 목록과 운영 규칙
-- 컨셉 01, 세계관·맵 02, 스토리 03, 캐릭터 04, 전투 05, 몬스터 06, 시스템(HUD·퀘스트·성장·상점·세이브) 07, 기술 구조 08, 로드맵 09, Firebase 10, 시나리오 스크립트 11, 리소스 생성 12, 관리자 모드 13
+- 컨셉 01, 세계관·맵 02, 스토리 03, 캐릭터 04, 전투 05, 몬스터 06, 시스템(HUD·설정·퀘스트·성장·상점·세이브) 07, 기술 구조 08, 로드맵 09, Firebase 10, 시나리오 스크립트 11, 리소스 생성 12, 관리자 모드 13, AI 연결 14
 - `docs/reference/` — 원본 통합 기획서. 수정하지 않는다.
 - `docs/` 는 GitHub 에 공개된다. **대사 원문은 docs 에 쓰지 않는다** (시나리오 스크립트에만).
 
@@ -41,8 +41,10 @@
 | 시나리오 문법·명령 추가, 암호화 | `11_scenario.md` | `js/scenario/*` |
 | 그래픽·사운드 리소스 | `12_assets.md` | `tools/gen_assets.py`, `gen_svg.py`, `gen_audio.py` → 실행 후 `tools/gen_manifest.py` |
 | 관리자 페이지 메뉴 | `13_admin.md` | `admin.html`, `js/admin/*` |
+| AI 연결 (Claude·Gemini·ChatGPT), NPC 자동 대화 | `14_ai.md` | `js/ai/ai-client.js` |
+| 화면 크기·레이아웃·설정 메뉴·알림 창 | `07_systems.md` (+ 구조면 `08`) | `js/core/display.js`, `js/core/ui.js`, `js/systems/hud.js` |
 | 할 일, 우선순위, 완료 기록 | `09_roadmap.md` (모든 구현 후 항상) | — |
-| 위 어디에도 맞지 않는 새 주제 | `docs/14_xxx.md` 를 새로 만들고 `docs/README.md` 목록에 추가 | — |
+| 위 어디에도 맞지 않는 새 주제 | `docs/15_xxx.md` 를 새로 만들고 `docs/README.md` 목록에 추가 | — |
 
 - 같은 수치가 여러 문서에 나오면(예: 스킬 MP는 `04`와 `05`) 모두 맞춰서 고친다.
 - 파일을 추가·삭제하면 `index.html`(관리자에서도 쓰면 `admin.html`)의 `<script>` 목록과 `08_tech.md` 의 파일 구조를 갱신한다.
@@ -66,6 +68,8 @@
 - UI 텍스트·주석은 한국어.
 - `party` 멤버의 능력치 필드를 추가하면 `PARTY_SAVE_FIELDS`(`js/systems/save.js`)에도 추가한다.
 - 세이브 구조를 호환되지 않게 바꾸면 `SAVE_VERSION`을 올린다. 세이브 최상위 키를 바꾸면 `firestore.rules` 도 고치고 콘솔 재게시를 안내한다.
-- 클라우드 저장(`saveGame(..., true)`, 시나리오 `> save`)은 수동 저장과 스토리 진행 시점에만 쓴다. Firestore 무료 쓰기 한도 때문이다.
+- 세이브는 자동 1 + 수동 5 슬롯(`js/systems/save.js`). 로그인 시 모든 저장이 클라우드에도 간다. 자동 저장은 `requestAutoSave()` 로만 요청하고(필드 상태일 때만 저장), 클라우드 쓰기는 20초 간격으로 모인다(Firestore 무료 쓰기 한도). 즉시 클라우드 쓰기는 수동 저장과 `> save` 뿐이다.
+- 브라우저 `alert`/`confirm`/`prompt` 를 게임 코드에 쓰지 않는다. `uiAlert`/`uiConfirm`(`js/core/ui.js`)을 쓴다.
+- 최상위 `let`/`const` 전역(`gameState`, `player`, `Modal` 등)은 `window` 속성이 아니다. 헤드리스 테스트에서는 `iframe.contentWindow.eval("gameState")` 로 읽는다.
 - 최고 관리자 계정은 `js/config.js` 의 `MASTER_EMAIL` 과 `firestore.rules` 의 `isMaster()` 두 곳에 있다. 바꿀 때는 둘 다 바꾼다. 다른 관리자는 관리자 페이지 '관리자 지정'(Firestore `config/admins`).
 - 게임 진행(이동·페이드·전투 연출)은 타이머로 끝을 보장하고, rAF 는 그리기만 한다. 새 연출도 이 원칙을 지킨다.

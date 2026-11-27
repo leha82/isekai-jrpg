@@ -55,12 +55,20 @@ Firestore Database → **규칙**(Rules) 탭에서 내용을 아래로 바꾸고
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 로그인한 사용자는 자기 uid 문서(세이브 1개)만 읽고 쓸 수 있다.
+    // 로그인한 사용자는 자기 uid 아래(예전 단일 세이브 + 슬롯 6개)만 읽고 쓸 수 있다.
     match /saves/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['version', 'savedAt', 'player', 'inventory', 'party']);
+
+      match /slots/{slot} {
+        allow read, delete: if request.auth != null && request.auth.uid == uid;
+        allow create, update: if request.auth != null && request.auth.uid == uid
+          && slot in ['auto', '1', '2', '3', '4', '5']
+          && request.resource.data.keys().hasOnly(['version', 'savedAt', 'player', 'inventory', 'party']);
+      }
     }
+    // (scriptKeys · admin · config/admins 규칙은 firestore.rules 전체를 참고)
     // 그 밖의 경로는 모두 차단
     match /{document=**} {
       allow read, write: if false;
@@ -97,12 +105,18 @@ const firebaseConfig = {
 2. **GitHub 토큰:** 관리자 페이지 첫 접속 시 입력 ([11_scenario.md](11_scenario.md#github-토큰-최초-1회))
 3. **첫 업로드:** 관리자 페이지 → `📁 폴더 가져오기` → 로컬 `scenario-src` 선택 → `🔒 암호화 저장 & 업로드`. 이 업로드 전까지 게임은 "시나리오가 아직 업로드되지 않았습니다" 상태다.
 
+## 8. 세이브 슬롯 추가 설정 (2026-11-27)
+1. **보안 규칙 다시 게시:** 저장소의 [`firestore.rules`](../firestore.rules) 전체를 Firestore → 규칙에 붙여 넣고 **게시**. (`saves/{uid}/slots/{slot}` 규칙 추가 — 게시 전에는 클라우드 슬롯 저장이 `permission-denied` 로 실패하고 이 기기에만 저장된다)
+2. 따로 만들 컬렉션은 없다. 첫 저장 때 `saves/{uid}/slots/...` 문서가 생긴다.
+3. 무료 한도: 자동 저장 클라우드 쓰기는 20초에 최대 1번, 불러오기 창을 열 때 읽기 6회. 혼자 테스트하는 수준에서는 하루 한도(쓰기 2만·읽기 5만)에 한참 못 미친다.
+
 ## 6. 설정 완료 체크리스트
 - [x] 프로젝트 생성 (Spark 요금제 유지)
 - [x] Authentication → Google 사용 설정
 - [x] 승인된 도메인에 `leha82.github.io` 추가
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
 - [x] 보안 규칙 게시
+- [ ] 세이브 슬롯 규칙(`saves/{uid}/slots`) 재게시 (2026-11-27)
 - [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
 - [x] (시나리오) `firestore.rules` 게시 (2026-11-27 확인)
 - [x] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드 (커밋 fb552c4)

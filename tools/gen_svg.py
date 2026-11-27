@@ -134,7 +134,7 @@ ICONS = {
     'bag': '<path d="M6 8h12l1.5 12h-15z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/><path d="M9 12h6"/>',
     'skill': '<path d="M12 2l2.4 6.3L21 9l-5 4.4L17.4 21 12 17.6 6.6 21 8 13.4 3 9l6.6-.7z"/>',
     'quest': '<path d="M6 3h10l3 3v15H6z"/><path d="M16 3v3h3"/><path d="M9 10h7M9 13.5h7M9 17h4"/>',
-    'settings': '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+    'settings': None,  # 톱니바퀴 — gear_icon() 으로 계산해 채운다
     'save': '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h8V3"/><rect x="8" y="13" width="8" height="6"/>',
     'load': '<path d="M3 7h6l2 2h10v11H3z"/><path d="M12 12v5M9.5 14.5L12 17l2.5-2.5"/>',
     'sound': '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/>',
@@ -145,6 +145,23 @@ ICONS = {
     'heart': '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     'coin': '<circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
 }
+
+
+def gear_icon(teeth=8, r_out=10.2, r_in=7.6, r_hole=3.2):
+    """톱니바퀴 아이콘: 바깥 톱니 teeth 개 + 가운데 구멍"""
+    import math
+    pts = []
+    step = 2 * math.pi / teeth
+    for i in range(teeth):
+        a = i * step - math.pi / 2
+        # 톱니 하나 = 안쪽 → 바깥 → 바깥 → 안쪽 (사다리꼴)
+        for da, r in ((-0.30, r_in), (-0.17, r_out), (0.17, r_out), (0.30, r_in)):
+            pts.append((12 + r * math.cos(a + da * step / 0.62 * 0.5), 12 + r * math.sin(a + da * step / 0.62 * 0.5)))
+    d = 'M' + ' L'.join(f'{x:.2f} {y:.2f}' for x, y in pts) + ' Z'
+    return f'<path d="{d}"/><circle cx="12" cy="12" r="{r_hole}"/>'
+
+
+ICONS['settings'] = gear_icon()
 
 
 def icon_svg(body):

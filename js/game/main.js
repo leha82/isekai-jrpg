@@ -3,10 +3,17 @@
 // ==========================================
 
 // 새 게임: 주인공 이름 입력 → 시작 맵 → 인트로 장면
+// 자동 저장 데이터가 있으면 먼저 확인한다. 확인하면 자동 저장을 지우고, 인트로가 끝나는 첫 화면에서 새로 자동 저장된다.
 async function newGame() {
-  if (!SCN) return;
+  if (!SCN || gameState !== "TITLE") return;
   initAudio();
   SFX.confirm();
+  if (slotSave("auto")) {
+    const ok = await uiConfirm("새 게임을 시작하면 자동 저장 데이터가 사라집니다.\n(수동 저장 슬롯 1~5 는 그대로 남습니다.)", { title: "새 게임", ok: "확인", cancel: "취소", danger: true });
+    if (!ok) return;
+    await deleteSlot("auto");
+    refreshTitleContinue();
+  }
   const name = await askHeroName();
   newGameState(name);
   startGame(false);
@@ -31,6 +38,7 @@ function startGame(fromSave = false) {
 function setTitleButtonsEnabled(enabled) {
   $("ov-btn").disabled = !enabled;
   $("ov-continue").disabled = !enabled;
+  $("ov-load").disabled = !enabled;
 }
 
 function applyTitleText() {
@@ -38,10 +46,13 @@ function applyTitleText() {
   document.title = `${g.title} — ${g.subtitle}`;
   $("ov-title").textContent = g.title;
   $("ov-subtitle").textContent = g.subtitle;
+  // 광고 자리: 광고를 달기 전까지 게임 제목을 보여 준다
+  document.querySelector("#ad-slot .ad-title").textContent = g.title;
+  document.querySelector("#ad-slot .ad-sub").textContent = g.subtitle;
 }
 
 async function boot() {
-  fitGameToScreen();
+  applyDisplay();
   const status = $("ov-scenario-status");
   const retry = $("ov-retry");
   setTitleButtonsEnabled(false);

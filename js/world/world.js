@@ -112,7 +112,8 @@ function drawWorld(now) {
   }));
   const walkFrame = World.move ? (pp.p < 0.5 ? (World.stepParity ? 0 : 2) : 1) : 1;
   const bob = World.move && pp.p < 0.5 ? -ts / 16 : 0;
-  actors.push({ y: pp.y, draw: () => drawChar("hero", player.dir, walkFrame, pp.x, pp.y, camX, camY, bob) });
+  const leadSprite = (leader() || {}).sprite || "hero";
+  actors.push({ y: pp.y, draw: () => drawChar(leadSprite, player.dir, walkFrame, pp.x, pp.y, camX, camY, bob) });
   actors.sort((a, b) => a.y - b.y).forEach(a => a.draw());
 
   if (World.fade > 0) {
@@ -228,6 +229,7 @@ async function doWarp(mapId, x, y, dir) {
   await wait(60);
   await fadeTo(0, 260);
   World.transitioning = false;
+  requestAutoSave("map");  // 다른 맵으로 이동하면 자동 저장
 }
 
 function enterMap(mapId, x, y, dir) {
