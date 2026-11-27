@@ -185,7 +185,7 @@
       const dup = out.events.find(e => e.id === em[1]);
       if (dup) pushMsg(out.errors, file, line, `이벤트 id 중복: ${em[1]} (먼저 정의: ${dup.file}:${dup.line})`);
       const ev = { id: em[1], map: em[2], x: +em[3], y: +em[4], name: em[5] || em[1], file, line, steps: [],
-                   sprite: null, tile: null, trigger: null, face: "down" };
+                   sprite: null, tile: null, trigger: null, face: "down", when: null };
       out.events.push(ev);
       return { kind: "event", steps: ev.steps, event: ev };
     }
@@ -235,9 +235,15 @@
       ev.tile = { key: m[1], cond: pc.cond, file, line: ln };
       return;
     }
-    if ((m = trimmed.match(/^\*\s*trigger\s+(talk|touch)$/))) { ev.trigger = m[1]; return; }
+    if ((m = trimmed.match(/^\*\s*trigger\s+(talk|touch|enter)$/))) { ev.trigger = m[1]; return; }
+    if ((m = trimmed.match(/^\*\s*when\s+(.+)$/))) {
+      const pc = withCond(m[1]);
+      if (pc.error) return pushMsg(out.errors, file, ln, pc.error);
+      ev.when = pc.cond; ev.whenLine = ln;
+      return;
+    }
     if ((m = trimmed.match(/^\*\s*face\s+(down|up|left|right)$/))) { ev.face = m[1]; return; }
-    pushMsg(out.errors, file, ln, "형식: * sprite 키 [when 조건] / * tile 타일id [when 조건] / * trigger talk|touch / * face 방향");
+    pushMsg(out.errors, file, ln, "형식: * sprite 키 [when 조건] / * tile 타일id [when 조건] / * trigger talk|touch|enter / * when 조건 / * face 방향");
   }
 
   // ---------- 파일 파싱 ----------
@@ -375,6 +381,8 @@
       if (!mp) pushMsg(E, ev.file, ev.line, `없는 맵 id: ${ev.map} (${Object.keys(ctx.maps).join(", ")})`);
       else if (ev.x >= mp.w || ev.y >= mp.h) pushMsg(E, ev.file, ev.line, `맵 밖 좌표: ${ev.x},${ev.y} (${ev.map} 크기 ${mp.w}x${mp.h})`);
       else if (ev.trigger === "touch" && mp.isBlocked(ev.x, ev.y)) pushMsg(W, ev.file, ev.line, `밟기(touch) 이벤트가 지나갈 수 없는 칸에 있습니다. * trigger talk 를 쓰세요: ${ev.map}:${ev.x},${ev.y}`);
+      if (ev.trigger === "enter" && (ev.sprite || ev.tile)) pushMsg(W, ev.file, ev.line, `맵 진입(enter) 이벤트의 * sprite / * tile 은 쓰이지 않습니다: ${ev.id}`);
+      if (ev.when) checkCond(ev.when, ev.file, ev.whenLine || ev.line);
       const key = `${ev.map}:${ev.x},${ev.y}`;
       if (coords[key]) pushMsg(E, ev.file, ev.line, `같은 좌표(${key})에 이벤트가 이미 있습니다: ${coords[key].id}`);
       else coords[key] = ev;

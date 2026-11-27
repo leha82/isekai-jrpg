@@ -35,6 +35,20 @@ service cloud.firestore {
       }
     }
 
+    // 플레이어 정보: 로그인 시 부여되는 플레이어 ID (영문 대문자 6자리-숫자 10자리).
+    // 본인만 읽고 쓰며(관리자는 읽기 가능), 한 번 정한 playerId 는 바꿀 수 없다.
+    match /players/{uid} {
+      allow read: if (request.auth != null && request.auth.uid == uid) || isAdmin();
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['playerId', 'name', 'createdAt', 'lastLoginAt'])
+        && request.resource.data.playerId is string
+        && request.resource.data.playerId.matches('^[A-Z]{6}-[0-9]{10}$');
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['playerId', 'name', 'createdAt', 'lastLoginAt'])
+        && request.resource.data.playerId == resource.data.playerId;
+      allow delete: if false;
+    }
+
     // 시나리오 복호화 키: 게임이 스크립트를 풀어야 하므로 읽기는 누구나.
     // 생성·삭제는 관리자만. 키는 바꾸지 않고 새로 만들어 교체한다(수정 금지).
     match /scriptKeys/{keyId} {

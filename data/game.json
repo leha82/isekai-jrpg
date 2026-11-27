@@ -56,5 +56,52 @@
    "label": "아주 넓게"
   }
  ],
- "defaultView": 16
+ "defaultView": 16,
+ "worldMap": {
+  "meadow": {
+   "x": 22,
+   "y": 80
+  },
+  "hazel": {
+   "x": 22,
+   "y": 60
+  },
+  "hazel_elder": {
+   "parent": "hazel"
+  },
+  "forest_road": {
+   "x": 45,
+   "y": 78
+  },
+  "elbrea": {
+   "x": 68,
+   "y": 86
+  },
+  "lucen": {
+   "x": 45,
+   "y": 54
+  },
+  "lucen_castle": {
+   "parent": "lucen"
+  },
+  "grom_pass": {
+   "x": 60,
+   "y": 38
+  },
+  "frost_plain": {
+   "x": 62,
+   "y": 18
+  },
+  "noct_gate": {
+   "x": 84,
+   "y": 20
+  },
+  "noct_keep": {
+   "x": 86,
+   "y": 8
+  },
+  "orvel_throne": {
+   "parent": "noct_keep"
+  }
+ }
 }

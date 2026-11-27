@@ -1,12 +1,21 @@
 // ==========================================
-// 탭: 캐릭터·몬스터 디자인 — 파티 캐릭터(외형·초상화·능력치·성장·스킬), 몬스터(외형·능력치·행동·전리품)
+// 탭: 캐릭터·몬스터 디자인 — 파티 캐릭터(외형·초상화·기본값·5스탯·성장·기본 장비·스킬), 몬스터(외형·기본값·5스탯·행동·전리품)
+// 실제 능력치 계산은 게임과 같은 js/core/state.js 의 calcMemberStats / calcMonsterStats 를 쓴다.
 // → data/characters.json, data/monsters.json 커밋
 // ==========================================
 import { $, esc, S, setStatus, setBusy, commitData, dataToText, options, drawCharPreview, drawMonsterPreview } from "./core.js";
 import { SC } from "./tab-scenario.js";
 
 const A = { sub: "party", party: 0, mon: null };
-const STATS = [["hp", "HP"], ["mp", "MP"], ["atk", "공격"], ["matk", "마력"], ["def", "방어"]];
+const BASES = [["hp", "HP"], ["mp", "MP"], ["atk", "공격"], ["matk", "마력"], ["def", "방어"]];
+const FIVE = [["str", "STR 힘"], ["dex", "DEX 솜씨"], ["agi", "AGI 민첩"], ["con", "CON 체력"], ["int", "INT 지능"]];
+const GROWS = [["hp", "HP"], ["mp", "MP"], ["def", "방어"], ...FIVE];
+const pctTxt = (v) => `${Math.round(v * 1000) / 10}%`;
+function derivedRow(label, d) {
+  return `<tr><td>${label}</td><td>${d.maxHp}</td><td>${d.maxMp}</td><td>${d.atk}</td><td>${d.matk}</td><td>${d.def}</td><td>${pctTxt(d.crit)}</td><td>${pctTxt(d.evade)}</td>
+    <td class="small">${FIVE.map(([k]) => d[k]).join(" / ")}</td></tr>`;
+}
+const DERIVED_HEAD = `<tr><th></th><th>HP</th><th>MP</th><th>공격</th><th>마력</th><th>방어</th><th>치명타</th><th>회피</th><th>STR/DEX/AGI/CON/INT</th></tr>`;
 const FX = ["dark", "frost", "quake", "impact"];
 const ID_RE = /^[a-z][a-z0-9_]*$/;
 
@@ -39,12 +48,24 @@ function renderParty() {
       <label>초상화<select data-k="portrait">${options(portraits, c.portrait)}</select></label>
       <label><input type="checkbox" data-k="startUnlocked" ${c.startUnlocked ? "checked" : ""} ${A.party === 0 ? "disabled" : ""}> 처음부터 합류</label>
     </div>
-    <div class="section-title">기본 능력치 (Lv.1) / 레벨업 성장치</div>
-    <table class="mini-table"><tr><th></th>${STATS.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
-      <tr><td>기본</td>${STATS.map(([k]) => `<td><input type="number" data-stat="stats.${k}" value="${c.stats[k]}"></td>`).join("")}</tr>
-      <tr><td>성장</td>${STATS.map(([k]) => `<td><input type="number" data-stat="growth.${k}" value="${c.growth[k]}"></td>`).join("")}</tr></table>
+    <div class="section-title">기본값 (Lv.1, 스탯·장비 보너스 전)</div>
+    <table class="mini-table"><tr>${BASES.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      <tr>${BASES.map(([k]) => `<td><input type="number" data-stat="base.${k}" value="${(c.base || {})[k] ?? 0}"></td>`).join("")}</tr></table>
+    <div class="section-title">5스탯 (Lv.1)</div>
+    <table class="mini-table"><tr>${FIVE.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      <tr>${FIVE.map(([k]) => `<td><input type="number" data-stat="stats.${k}" value="${(c.stats || {})[k] ?? 0}"></td>`).join("")}</tr></table>
+    <div class="section-title">레벨업 성장치 <small>(소수 가능, 레벨마다 더한 뒤 버림)</small></div>
+    <table class="mini-table"><tr>${GROWS.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      <tr>${GROWS.map(([k]) => `<td><input type="number" step="0.5" data-stat="growth.${k}" value="${(c.growth || {})[k] ?? 0}"></td>`).join("")}</tr></table>
+    <div class="section-title">기본 장비 (새 게임 시작 시)</div>
+    <div class="form-grid">${EQUIP_SLOTS.map(slot => {
+      const ids = Object.keys(GameData.items.items).filter(id => GameData.items.items[id].type === slot && canEquipDef(c.id, id));
+      return `<label>${SLOT_INFO[slot].label}<select data-eq="${slot}">${options(["", ...ids], (c.equip || {})[slot] || "", v => v ? `${GameData.items.items[v].name} (${v})` : "없음")}</select></label>`;
+    }).join("")}</div>
+    <div class="section-title">실제 능력치 미리보기 <small>(기본 장비 기준, 대장간 강화 제외)</small></div>
+    <table class="mini-table">${DERIVED_HEAD}${[1, 5, 10, 15].map(lv => derivedRow(`Lv.${lv}`, calcMemberStats(c, lv, c.equip || {}))).join("")}</table>
     <div class="section-title">스킬 (전투 커맨드 순서대로)</div>
-    <div class="check-grid">${Object.entries(GameData.skills).map(([id, s]) => `<label><input type="checkbox" data-skill="${id}" ${c.skills.includes(id) ? "checked" : ""}> ${esc(s.icon || "")} ${esc(s.name)} <small>${id}</small></label>`).join("")}</div>
+    <div class="check-grid">${Object.entries(GameData.skills).map(([id, s]) => `<label><input type="checkbox" data-skill="${id}" ${c.skills.includes(id) ? "checked" : ""}> ${s.icon ? `<img src="${esc(s.icon)}" width="16" height="16" style="vertical-align:-3px">` : ""} ${esc(s.name)} <small>${id}</small></label>`).join("")}</div>
     <label class="wide">설명<textarea data-k="desc" rows="2">${esc(c.desc || "")}</textarea></label>`;
   drawCharPreview($("pv-char"), c.sprite, 3);
   $("actors-form").querySelectorAll("[data-k]").forEach(el => el.onchange = () => {
@@ -53,7 +74,13 @@ function renderParty() {
   });
   $("actors-form").querySelectorAll("[data-stat]").forEach(el => el.onchange = () => {
     const [g, k] = el.dataset.stat.split(".");
-    c[g][k] = Math.max(0, Math.round(+el.value || 0));
+    if (!c[g]) c[g] = {};
+    c[g][k] = g === "growth" ? Math.max(0, Math.round((+el.value || 0) * 100) / 100) : Math.max(0, Math.round(+el.value || 0));
+    render();
+  });
+  $("actors-form").querySelectorAll("[data-eq]").forEach(el => el.onchange = () => {
+    if (!c.equip) c.equip = { weapon: "", armor: "", accessory: "" };
+    c.equip[el.dataset.eq] = el.value;
     render();
   });
   $("actors-form").querySelectorAll("[data-skill]").forEach(el => el.onchange = () => {
@@ -62,6 +89,11 @@ function renderParty() {
     if (!c.skills.length) { c.skills = [id]; setStatus("스킬은 하나 이상 있어야 합니다.", "error"); }
     render();
   });
+}
+
+function canEquipDef(charId, itemId) {
+  const it = GameData.items.items[itemId];
+  return !!it && (!it.for || !it.for.length || it.for.includes(charId));
 }
 
 // ---------- 몬스터 ----------
@@ -99,8 +131,13 @@ function renderMonsters() {
       <label>ID<input value="${esc(A.mon)}" disabled></label>
       <label>이름<input data-k="name" value="${esc(m.name)}"></label>
       <label>스프라이트<select data-k="sprite">${options(sprites, m.sprite, k => `${GameData.sprites.monsters.list[k].label} (${k})`)}</select></label>
-      ${[["hp", "HP"], ["atk", "공격"], ["def", "방어"], ["exp", "경험치"], ["gold", "골드"]].map(([k, l]) => `<label>${l}<input type="number" data-n="${k}" value="${m[k]}"></label>`).join("")}
+      ${[["exp", "경험치"], ["gold", "골드"]].map(([k, l]) => `<label>${l}<input type="number" data-n="${k}" value="${m[k]}"></label>`).join("")}
     </div>
+    <div class="section-title">기본값 · 5스탯 <small>실제 HP·공격 등 = 기본값 + 스탯 효과 (캐릭터와 같은 공식)</small></div>
+    <table class="mini-table"><tr>${[["hp", "HP"], ["atk", "공격"], ["matk", "마력"], ["def", "방어"]].map(([, l]) => `<th>${l}</th>`).join("")}${FIVE.map(([, l]) => `<th>${l}</th>`).join("")}</tr>
+      <tr>${["hp", "atk", "matk", "def"].map(k => `<td><input type="number" data-mb="base.${k}" value="${(m.base || {})[k] ?? 0}"></td>`).join("")}${FIVE.map(([k]) => `<td><input type="number" data-mb="stats.${k}" value="${(m.stats || {})[k] ?? 0}"></td>`).join("")}</tr></table>
+    <table class="mini-table">${DERIVED_HEAD}${derivedRow("실제", calcMonsterStats(m))}</table>
+    <div class="meta">마력은 암흑·냉기 특수기의 피해에 쓰입니다. 회피율만큼 아군의 물리 공격이 빗나가고, 치명타율만큼 일반 공격이 강해집니다.</div>
     <div class="section-title">행동 (비중에 따라 무작위 선택)</div>
     <table class="mini-table"><tr><th>종류</th><th>이름</th><th>배율</th><th>대상</th><th>비중</th><th>이펙트</th><th></th></tr>
       ${m.actions.map((a, i) => `<tr><td><select data-a="${i}" data-f="type">${options(["attack", "special"], a.type, v => v === "attack" ? "일반 공격" : "특수기")}</select></td>
@@ -119,7 +156,14 @@ function renderMonsters() {
   drawMonsterPreview($("pv-mon"), m.sprite, 3);
   const f = $("actors-form");
   f.querySelectorAll("[data-k]").forEach(el => el.onchange = () => { m[el.dataset.k] = el.value; render(); });
-  f.querySelectorAll("[data-n]").forEach(el => el.onchange = () => { m[el.dataset.n] = Math.max(0, Math.round(+el.value || 0)); if (el.dataset.n === "hp" && m.hp < 1) m.hp = 1; render(); });
+  f.querySelectorAll("[data-n]").forEach(el => el.onchange = () => { m[el.dataset.n] = Math.max(0, Math.round(+el.value || 0)); render(); });
+  f.querySelectorAll("[data-mb]").forEach(el => el.onchange = () => {
+    const [g, k] = el.dataset.mb.split(".");
+    if (!m[g]) m[g] = {};
+    m[g][k] = Math.max(0, Math.round(+el.value || 0));
+    if (g === "base" && k === "hp" && m.base.hp < 1) m.base.hp = 1;
+    render();
+  });
   f.querySelectorAll("[data-a]").forEach(el => el.onchange = () => {
     const a = m.actions[+el.dataset.a], k = el.dataset.f;
     if (k === "power" || k === "weight") a[k] = +el.value; else if (el.value) a[k] = el.value; else delete a[k];
@@ -136,7 +180,8 @@ function addMonster(copy) {
   const id = (prompt("새 몬스터 id (영문 소문자·숫자·_)", copy ? `${A.mon}_2` : "new_monster") || "").trim();
   if (!id) return;
   if (!ID_RE.test(id) || GameData.monsters[id]) { alert("id 형식이 맞지 않거나 이미 있습니다."); return; }
-  GameData.monsters[id] = copy ? JSON.parse(JSON.stringify(copy)) : { name: "새 몬스터", sprite: Object.keys(GameData.sprites.monsters.list)[0], hp: 50, atk: 10, def: 0, exp: 10, gold: 10, actions: [{ type: "attack", name: "공격", weight: 1 }], drops: [], desc: "" };
+  GameData.monsters[id] = copy ? JSON.parse(JSON.stringify(copy)) : { name: "새 몬스터", sprite: Object.keys(GameData.sprites.monsters.list)[0],
+    base: { hp: 30, atk: 2, matk: 2, def: 0 }, stats: { str: 4, dex: 4, agi: 4, con: 4, int: 2 }, exp: 10, gold: 10, actions: [{ type: "attack", name: "공격", weight: 1 }], drops: [], desc: "" };
   if (copy) GameData.monsters[id].name += " 2";
   A.mon = id; render();
 }

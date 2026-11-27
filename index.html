@@ -45,8 +45,10 @@
   <div id="hud-right" style="display:none">
     <button class="icon-btn" title="파티 (P)" onclick="openMenu('party')"><img src="assets/img/icons/party.svg" alt=""><span class="key">P</span></button>
     <button class="icon-btn" title="가방 (I)" onclick="openMenu('items')"><img src="assets/img/icons/bag.svg" alt=""><span class="key">I</span></button>
+    <button class="icon-btn" title="장비 (E)" onclick="openMenu('equip')"><img src="assets/img/icons/equip.svg" alt=""><span class="key">E</span></button>
     <button class="icon-btn" title="스킬 (K)" onclick="openMenu('skills')"><img src="assets/img/icons/skill.svg" alt=""><span class="key">K</span></button>
     <button class="icon-btn" title="퀘스트 (Q)" onclick="openMenu('quests')"><img src="assets/img/icons/quest.svg" alt=""><span class="key">Q</span></button>
+    <button class="icon-btn" title="지도 (M)" onclick="openMenu('map')"><img src="assets/img/icons/map.svg" alt=""><span class="key">M</span></button>
     <button class="icon-btn" title="저장·불러오기 (F)" onclick="openSaveWindow('save')"><img src="assets/img/icons/save.svg" alt=""><span class="key">F</span></button>
     <button class="icon-btn" id="hud-mute" title="소리 켜기/끄기 (N)" onclick="hudMute()"></button>
     <button class="icon-btn" title="설정 (O · Esc)" onclick="openMenu('settings')"><img src="assets/img/icons/settings.svg" alt=""><span class="key">O</span></button>
@@ -105,7 +107,7 @@
     </div>
     <div id="ov-scenario-status"></div>
     <button class="mini-btn" id="ov-retry" style="display:none;" onclick="boot()">🔄 다시 시도</button>
-    <div id="ov-auth"><div id="ov-auth-status">☁️ 클라우드 연결 중...</div></div>
+    <div id="ov-auth"><div id="ov-auth-status">☁️ 클라우드 연결 중...</div><div id="ov-pid" class="setting-row"></div></div>
   </div>
 
   <!-- 게임 자체 알림·확인 창 (브라우저 alert/confirm 대신) -->
@@ -138,7 +140,7 @@
   </div>
 </div>
 
-<div class="controls-hint">방향키·WASD 이동 · Space 조사/대화 · P 파티 · I 가방 · K 스킬 · Q 퀘스트 · F 저장 · N 소리 · O/Esc 설정 · 전투 중 숫자키</div>
+<div class="controls-hint">방향키·WASD 이동 · Space 조사/대화 · P 파티 · I 가방 · E 장비 · K 스킬 · Q 퀘스트 · M 지도 · F 저장 · N 소리 · O/Esc 설정 · 전투 중 숫자키</div>
 
 <!-- 광고 자리 (Google AdSense 등). 광고 코드를 넣기 전까지는 게임 제목을 보여 준다. -->
 <div id="ad-slot" aria-label="광고 영역"><span class="ad-title">쐐기의 이방인</span><span class="ad-sub">베일하르트의 균열</span></div>
@@ -157,6 +159,7 @@
 <script src="js/scenario/runtime.js"></script>
 <script src="js/world/world.js"></script>
 <script src="js/systems/hud.js"></script>
+<script src="js/systems/worldmap.js"></script>
 <script src="js/systems/shop.js"></script>
 <script src="js/systems/battle-view.js"></script>
 <script src="js/systems/battle.js"></script>

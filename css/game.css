@@ -168,10 +168,6 @@ select { background: #0b1020; color: #fff; border: 1.5px solid #64748b; border-r
 .order-btns { display: flex; flex-direction: column; gap: 3px; justify-content: center; }
 .order-btns .item-btn { padding: 2px 7px; }
 .leader-badge { display: inline-block; font-size: 10px; background: #b45309; color: #fff; border-radius: 3px; padding: 0 5px; margin-left: 4px; vertical-align: 1px; }
-.ai-card { background: #161d33; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; }
-.ai-card.active { border-color: #fde68a; }
-.ai-card .ai-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.ai-card .ai-fields { display: grid; grid-template-columns: 64px 1fr; gap: 4px 8px; align-items: center; }
 .ai-result { font-size: 11px; color: #cbd5e1; white-space: pre-wrap; min-height: 14px; }
 .ai-result.ok { color: #86efac; }
 .ai-result.err { color: #fca5a5; }
@@ -273,25 +269,27 @@ button.cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 #ad-slot .ad-title { color: #ffe9a8; font-weight: bold; font-size: 18px; letter-spacing: 3px; text-shadow: 0 2px 0 #3a1a5a; }
 #ad-slot .ad-sub { color: #c4b5fd; font-size: 12px; letter-spacing: 4px; }
 
-/* ---------- 화면 레이아웃 (설정 → 화면) ---------- */
-body.pad-hidden #virtual-pad { display: none; }
-/* 모바일 세로: 화면 너비에 맞추고 패드를 크게 */
-body.layout-mobile-portrait { padding: 4px; justify-content: flex-start; }
-body.layout-mobile-portrait .controls-hint { display: none; }
-body.layout-mobile-portrait #virtual-pad { padding: 10px 14px; margin-top: 8px; }
-body.layout-mobile-portrait .dpad { grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(3, 50px); }
-body.layout-mobile-portrait .act-btn { padding: 16px 16px; font-size: 14px; }
-body.layout-mobile-portrait #ad-slot { height: 50px; }
-/* 모바일 가로: 패드를 화면 양옆에 겹쳐 띄운다 */
-body.layout-mobile-landscape { padding: 2px; }
-body.layout-mobile-landscape .controls-hint { display: none; }
-body.layout-mobile-landscape #virtual-pad {
-  position: fixed; left: 0; right: 0; bottom: 62px; max-width: none; margin: 0; z-index: 60;
-  background: none; border: none; padding: 0 12px; pointer-events: none;
+/* ---------- 화면 모드 (설정 → 화면 모드) ---------- */
+body.pad-hidden #virtual-pad { display: none !important; }
+/* 모바일 (세로·가로): 가상 패드를 게임 화면(필드) 위에 겹쳐 띄운다. 필드가 아닐 때(전투·대화·메뉴)는 숨긴다. */
+body.layout-mobile-portrait, body.layout-mobile-landscape { padding: 2px; }
+body.layout-mobile-portrait { justify-content: flex-start; }
+body.layout-mobile-portrait .controls-hint, body.layout-mobile-landscape .controls-hint { display: none; }
+body.layout-mobile-portrait #ad-slot, body.layout-mobile-landscape #ad-slot { height: 50px; margin-top: 4px; }
+body.layout-mobile-portrait #virtual-pad, body.layout-mobile-landscape #virtual-pad {
+  position: absolute; left: 0; right: 0; bottom: 8px; max-width: none; width: auto; margin: 0; z-index: 30;
+  background: none; border: none; padding: 0 10px; pointer-events: none; display: none; align-items: flex-end;
 }
-body.layout-mobile-landscape #virtual-pad > * { pointer-events: auto; opacity: .8; }
-body.layout-mobile-landscape .action-pads { flex-direction: column; }
-body.layout-mobile-landscape #ad-slot { height: 50px; margin-top: 4px; }
+body.layout-mobile-portrait.st-world #virtual-pad, body.layout-mobile-landscape.st-world #virtual-pad { display: flex; }
+body.layout-mobile-portrait #virtual-pad > *, body.layout-mobile-landscape #virtual-pad > * { pointer-events: auto; opacity: .72; }
+body.layout-mobile-portrait .pad-btn, body.layout-mobile-landscape .pad-btn { background: rgba(51,65,85,.75); }
+body.layout-mobile-portrait .action-pads, body.layout-mobile-landscape .action-pads { flex-direction: column; gap: 8px; }
+body.layout-mobile-portrait .dpad { grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 46px); }
+body.layout-mobile-portrait .act-btn { padding: 14px 12px; font-size: 13px; }
+/* 세로 모드 (게임 화면 480×640): 우상단 아이콘을 두 줄로 */
+body.portrait #hud-right { flex-wrap: wrap; justify-content: flex-end; width: 194px; }
+body.portrait #autosave-mark { top: 88px; }
+body.portrait #hud-left { width: 186px; }
 /* 전체 화면 */
 body.is-fullscreen { padding: 0; }
 body.is-fullscreen .controls-hint { display: none; }
@@ -303,3 +301,65 @@ body.is-fullscreen .controls-hint { display: none; }
   .action-pads { flex-direction: column; gap: 6px; }
   .act-btn { padding: 10px 10px; font-size: 12px; }
 }
+
+/* ---------- 아이콘 이미지 (아이템·스킬·장비) ---------- */
+img.ico { width: 20px; height: 20px; vertical-align: -5px; margin-right: 3px; flex-shrink: 0; }
+img.ico.big { width: 32px; height: 32px; vertical-align: middle; }
+button.cmd-btn img.ico { width: 16px; height: 16px; vertical-align: -3px; }
+.item-btn img { width: 14px; height: 14px; vertical-align: -2px; }
+.grow { flex: 1; min-width: 0; }
+.btn-group.end { justify-content: flex-end; max-width: 55%; }
+.bonus { color: #fde68a; font-size: 11px; }
+.mp-cost { color: #7dd3fc; }
+.field-ok { color: #86efac; }
+
+/* ---------- 파티: EXP · 5스탯 ---------- */
+.stat-line .k { width: 26px; color: #94a3b8; font-size: 10px; font-weight: bold; }
+.stat-line .bar.exp { width: 140px; height: 7px; }
+.stat5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 2px 0; max-width: 330px; }
+.stat5 span { background: #0f1528; border: 1px solid #334155; border-radius: 4px; text-align: center; padding: 2px 0; cursor: help; }
+.stat5 em { display: block; font-style: normal; font-size: 9px; color: #94a3b8; font-weight: bold; }
+.stat5 b { font-size: 13px; color: #fff; }
+.stat-legend { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 10px; color: #94a3b8; padding: 4px 2px; border-top: 1px dashed #334155; }
+.stat-legend b { color: #fde68a; }
+
+/* ---------- 스킬·장비 탭: 캐릭터 고르기 ---------- */
+.char-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+.char-btn { display: flex; align-items: center; gap: 5px; background: #1e293b; color: #e2e8f0; border: 1.5px solid #475569; border-radius: 18px; padding: 2px 10px 2px 2px; cursor: pointer; font-weight: bold; font-size: 12px; }
+.char-btn img { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #e8dcc0; }
+.char-btn.on { background: #b45309; border-color: #fde68a; color: #fff; }
+.equip-slot { background: #161d33; border: 1px solid #334155; border-radius: 6px; padding: 6px 8px; }
+.equip-cur { display: flex; align-items: center; gap: 8px; }
+.slot-label { width: 46px; font-weight: bold; color: #fde68a; flex-shrink: 0; }
+.equip-opts { margin: 5px 0 0 54px; display: flex; flex-direction: column; gap: 3px; }
+.equip-opt { display: flex; align-items: center; gap: 6px; background: #0f1528; border-radius: 4px; padding: 3px 6px; }
+.equip-none { margin: 4px 0 0 54px; }
+.preview .up { color: #86efac; margin-right: 6px; } .preview .down { color: #fca5a5; margin-right: 6px; }
+
+/* ---------- 설정 ---------- */
+.top-actions { gap: 6px; flex-wrap: wrap; }
+.item-btn.big { padding: 7px 14px; font-size: 13px; }
+.mute-btn { min-width: 64px; }
+.mute-btn.off { background: #475569; border-color: #94a3b8; }
+.pid { font-size: 12px; } .pid-text { font-family: Consolas, monospace; letter-spacing: 1px; color: #fde68a; user-select: text; -webkit-user-select: text; }
+#ov-pid:empty { display: none; }
+
+/* ---------- 지도 ---------- */
+.map-wrap { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.map-box { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 4px; }
+.map-box canvas { max-width: 100%; border: 2px solid #475569; border-radius: 6px; image-rendering: pixelated; align-self: flex-start; background: #000; }
+#map-world { image-rendering: auto; }
+.map-legend { display: flex; gap: 10px; font-size: 11px; color: #cbd5e1; }
+.map-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; vertical-align: 0; }
+
+/* ---------- AI 연결 (회사 - 모델 목록) ---------- */
+.ai-list { display: flex; flex-direction: column; gap: 4px; }
+.ai-row { background: #161d33; border: 1px solid #334155; border-radius: 6px; }
+.ai-row.active { border-color: #fde68a; }
+.ai-row .ai-head { display: flex; align-items: center; gap: 6px; padding: 6px 10px; cursor: pointer; }
+.ai-row .ai-head:hover { background: #1e2745; }
+.ai-name { font-weight: bold; font-family: Consolas, 'Malgun Gothic', monospace; }
+.ai-key { font-size: 10px; color: #94a3b8; } .ai-key.ok { color: #86efac; }
+.ai-caret { font-size: 9px; color: #fde68a; }
+.ai-detail { padding: 4px 10px 8px; display: flex; flex-direction: column; gap: 5px; border-top: 1px dashed #334155; }
+.ai-detail .ai-fields { display: grid; grid-template-columns: 110px 1fr; gap: 4px 8px; align-items: center; }

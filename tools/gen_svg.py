@@ -125,6 +125,17 @@ PORTRAITS = {
         extra='<path d="M32 54 Q48 90 64 54 Q60 62 48 64 Q36 62 32 54 Z" fill="#f4f4f8" stroke="#b8b8c4" stroke-width="1"/>',
         mouth='',
     ),
+    'tobi': dict(
+        skin='#ffd8b8', skin_d='#e8a888', hair='#c8582c', hair_d='#7a2e14', hair_l='#f08a4a', eye='#7a4a1a',
+        bg=('#fff1b8', '#5a9a3a'), eye_h=5.8, brow_tilt=-1,
+        body='<path d="M16 96 Q18 74 34 70 L48 78 L62 70 Q78 74 80 96 Z" fill="#4f9a3a" stroke="#2f6a22" stroke-width="1.5"/>'
+             '<path d="M34 70 L48 82 L62 70" stroke="#f4e4b0" stroke-width="3" fill="none"/>'
+             '<path d="M60 80 L70 92 M66 78 L64 94" stroke="#8a5a2a" stroke-width="2.5" stroke-linecap="round"/>',
+        front_hair='M24 42 Q20 14 46 10 Q74 10 72 40 L68 30 L64 36 L60 24 L54 32 L48 20 L42 32 L36 22 L32 34 L28 28 Z',
+        extra='<path d="M58 54 L62 56 M60 52 L60 58" stroke="#c0605a" stroke-width="1.2" stroke-linecap="round"/>'
+              '<circle cx="34" cy="55" r=".9" fill="#c07050"/><circle cx="37" cy="56.5" r=".9" fill="#c07050"/><circle cx="35" cy="58" r=".9" fill="#c07050"/>',
+        mouth='<path d="M42 58 Q48 64 55 58 Q48 61 42 58 Z" fill="#fff" stroke="#a0524a" stroke-width="1.4" stroke-linejoin="round"/>',
+    ),
 }
 
 
@@ -144,7 +155,144 @@ ICONS = {
     'sword': '<path d="M19 3l-9.5 9.5M19 3h-4M19 3v4"/><path d="M7 11l6 6M5 19l3-3M4 15l5 5"/>',
     'heart': '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
     'coin': '<circle cx="12" cy="12" r="8"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>',
+    'equip': '<path d="M12 3l7 3v5c0 5-3.2 8.6-7 10-3.8-1.4-7-5-7-10V6z"/><path d="M12 7v10M8.5 11h7"/>',
+    'copy': '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
 }
+
+
+# ------------------------------------------------------------------ 컬러 아이콘 (아이템·장비·스킬)
+# 32x32, 진한 외곽선 + 단색 면 + 하이라이트. 게임 데이터의 icon 필드가 이 파일 경로를 가리킨다.
+OL = '#1a1626'
+
+
+def _o():
+    return f'stroke="{OL}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"'
+
+
+def flask(liquid, light):
+    shape = 'M13.5 6.5h5v6l6 5.5a8 8 0 1 1-17 0l6-5.5z'
+    return (f'<rect x="12" y="2.5" width="8" height="4" rx="1" fill="#9a6a3a" {_o()}/>'
+            f'<path d="{shape}" fill="#e8f2ff"/>'
+            f'<path d="M8.6 19.5h14.8a7.6 7.6 0 1 1-14.8 0z" fill="{liquid}"/>'
+            f'<ellipse cx="12.5" cy="21.5" rx="1.6" ry="2.6" fill="{light}" opacity=".9"/>'
+            f'<path d="{shape}" fill="none" {_o()}/>')
+
+
+def sword(blade='#dfe6f0', guard='#f2c94c', grip='#7a4a2a', wide=False):
+    w = 3.4 if wide else 2.4
+    return (f'<path d="M27 3 L{27 - w} 3 L10 17.5 L14.5 22 L29 {3 + w} L29 5 Z" fill="{blade}" {_o()}/>'
+            f'<path d="M26 6 L12.5 19.5" stroke="#ffffff" stroke-width="1" opacity=".8"/>'
+            f'<path d="M7 15 L17 25" stroke="{OL}" stroke-width="5" stroke-linecap="round"/>'
+            f'<path d="M7 15 L17 25" stroke="{guard}" stroke-width="2.6" stroke-linecap="round"/>'
+            f'<path d="M11 21 L5 27" stroke="{OL}" stroke-width="4.6" stroke-linecap="round"/>'
+            f'<path d="M11 21 L5 27" stroke="{grip}" stroke-width="2.4" stroke-linecap="round"/>'
+            f'<circle cx="4.2" cy="27.8" r="2" fill="{guard}" {_o()}/>')
+
+
+def bow(wood='#9a6a3a', accent=None):
+    a = accent or wood
+    return (f'<path d="M8 3 Q30 16 8 29" fill="none" stroke="{OL}" stroke-width="4.4" stroke-linecap="round"/>'
+            f'<path d="M8 3 Q30 16 8 29" fill="none" stroke="{wood}" stroke-width="2.4" stroke-linecap="round"/>'
+            f'<path d="M8 3 L8 29" stroke="#f4f1e6" stroke-width="1"/>'
+            f'<circle cx="19" cy="16" r="1.8" fill="{a}" {_o()}/>'
+            f'<path d="M4 16 L27 16" stroke="{OL}" stroke-width="2.6"/><path d="M4 16 L27 16" stroke="#c9b48a" stroke-width="1.2"/>'
+            f'<path d="M27 16 L23 13.5 L23 18.5 Z" fill="#cfd6e0" {_o()}/>')
+
+
+def armor(body, trim, extra=''):
+    return (f'<path d="M10 4 L13 6 Q16 8 19 6 L22 4 L28 8 L25 14 L23 13 L23 28 L9 28 L9 13 L7 14 L4 8 Z" fill="{body}" {_o()}/>'
+            f'<path d="M13 6 Q16 10 19 6" fill="none" stroke="{trim}" stroke-width="2"/>'
+            f'<path d="M9 22 L23 22" stroke="{trim}" stroke-width="2"/>' + extra)
+
+
+def gem(cx, cy, r, color):
+    return (f'<path d="M{cx} {cy - r} L{cx + r} {cy} L{cx} {cy + r} L{cx - r} {cy} Z" fill="{color}" {_o()}/>'
+            f'<path d="M{cx - r * .4} {cy - r * .2} L{cx} {cy - r * .6}" stroke="#fff" stroke-width="1"/>')
+
+
+def sparkle(x, y, color='#facc15'):
+    return f'<path d="M{x} {y} l1 2.2 2.2 1 -2.2 1 -1 2.2 -1 -2.2 -2.2 -1 2.2 -1z" fill="{color}"/>'
+
+
+def outlined_path(d, color, w=2.4):
+    return (f'<path d="{d}" fill="none" stroke="{OL}" stroke-width="{w + 2}" stroke-linecap="round"/>'
+            f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{w}" stroke-linecap="round"/>')
+
+
+def pebble(x, y, r):
+    return f'<circle cx="{x}" cy="{y}" r="{r}" fill="#9a9aa6" {_o()}/><circle cx="{x - r * .3}" cy="{y - r * .3}" r="{r * .3}" fill="#e4e4ec"/>'
+
+
+COLOR_ICONS = {
+    # ---- 소모품·중요 아이템 (assets/img/icons/items)
+    'items/potion': flask('#e2384a', '#ff9aa6'),
+    'items/hi_potion': flask('#e84aa8', '#ffc2ea') + sparkle(24, 3),
+    'items/ether': flask('#2f7de8', '#a8d4ff'),
+    'items/herb': ('<path d="M16 29 Q15 18 17 8" fill="none" stroke="#3f7a2a" stroke-width="2"/>'
+                   f'<path d="M16.5 14 Q6 12 5 4 Q14 4 16.5 14 Z" fill="#7fd36a" {_o()}/>'
+                   f'<path d="M16.5 19 Q27 17 28 9 Q19 9 16.5 19 Z" fill="#c9f2d0" {_o()}/>'
+                   f'<path d="M16 23 Q8 23 6 17 Q13 16 16 23 Z" fill="#7fd36a" {_o()}/>'),
+    'items/pendant': ('<path d="M7 4 Q16 18 25 4" fill="none" stroke="#c9ced8" stroke-width="1.6" stroke-dasharray="1.5 1.2"/>'
+                      f'<circle cx="16" cy="20" r="7" fill="#dfe6f0" {_o()}/>' + gem(16, 20, 4, '#7dd3fc')),
+    # ---- 무기
+    'items/short_sword': sword(),
+    'items/steel_sword': sword('#b8c4d8', '#9aa6c0', '#3a3a4a'),
+    'items/knight_sword': sword('#e8ecf4', '#c0392b', '#5a3a2a', wide=True),
+    'items/hunting_bow': bow(),
+    'items/elven_bow': bow('#3f9a4f', '#f2c94c'),
+    'items/wood_slingshot': (outlined_path('M16 29 L16 18 M16 18 L8 6 M16 18 L24 6', '#a8743a', 3)
+                             + '<path d="M8 6 Q16 15 24 6" fill="none" stroke="#c0392b" stroke-width="1.6"/>' + pebble(16, 11.5, 2.2)),
+    'items/oak_staff': (outlined_path('M7 29 L21 11', '#8a5a2a', 2.6)
+                        + f'<path d="M17 12 Q19 4 26 5 Q27 12 20 14" fill="#5a9a3a" {_o()}/>'
+                        + f'<circle cx="22.5" cy="9" r="3.6" fill="#a855f7" {_o()}/><circle cx="21.4" cy="7.8" r="1.1" fill="#f0d8ff"/>'),
+    # ---- 방어구
+    'items/cloth_armor': armor('#c8a878', '#8a6a3a'),
+    'items/leather_armor': armor('#9a6236', '#5a3418', '<circle cx="12" cy="17" r="1" fill="#f2c94c"/><circle cx="20" cy="17" r="1" fill="#f2c94c"/>'),
+    'items/iron_armor': armor('#a9b0c0', '#5a6070', '<path d="M16 9 L16 27" stroke="#5a6070" stroke-width="1.4"/>'),
+    'items/chain_mail': armor('#c9ced8', '#5a6070', ''.join(f'<circle cx="{x}" cy="{y}" r=".9" fill="#5a6070"/>' for y in (12, 15, 18, 25) for x in (12, 16, 20))),
+    'items/elven_cloak': (f'<path d="M16 3 Q9 4 8 10 L4 28 Q16 31 28 28 L24 10 Q23 4 16 3 Z" fill="#3f9a4f" {_o()}/>'
+                          '<path d="M11 10 Q16 14 21 10" fill="none" stroke="#256a32" stroke-width="1.8"/>'
+                          '<path d="M16 13 L16 28" stroke="#256a32" stroke-width="1.4"/>' + gem(16, 11.5, 2.4, '#f2c94c')),
+    # ---- 장신구
+    'items/luck_charm': (''.join(f'<circle cx="{16 + dx}" cy="{14 + dy}" r="5" fill="#4ade80" {_o()}/>' for dx, dy in ((-4.5, 0), (4.5, 0), (0, -4.5), (0, 4.5)))
+                         + '<path d="M16 18 Q18 25 22 29" fill="none" stroke="#2f6a22" stroke-width="2"/><circle cx="16" cy="14" r="2" fill="#bbf7d0"/>'),
+    'items/power_ring': (f'<circle cx="16" cy="19" r="8.5" fill="none" stroke="{OL}" stroke-width="5.4"/>'
+                         '<circle cx="16" cy="19" r="8.5" fill="none" stroke="#f2c94c" stroke-width="3"/>' + gem(16, 9, 4.6, '#ef4444')),
+    'items/swift_anklet': (f'<ellipse cx="16" cy="22" rx="9" ry="4.5" fill="none" stroke="{OL}" stroke-width="4.4"/>'
+                           '<ellipse cx="16" cy="22" rx="9" ry="4.5" fill="none" stroke="#7dd3fc" stroke-width="2.2"/>'
+                           f'<path d="M8 18 Q4 8 14 5 Q11 11 15 14 Z" fill="#e0f2ff" {_o()}/><path d="M24 18 Q28 8 18 5 Q21 11 17 14 Z" fill="#e0f2ff" {_o()}/>'),
+    'items/sage_pendant': ('<path d="M7 3 Q16 16 25 3" fill="none" stroke="#f2c94c" stroke-width="1.6"/>'
+                           f'<path d="M16 11 L23 20 L16 29 L9 20 Z" fill="#a855f7" {_o()}/><path d="M16 11 L16 29 M9 20 L23 20" stroke="#e9d5ff" stroke-width="1"/>'),
+    'items/guard_amulet': ('<path d="M7 3 Q16 12 25 3" fill="none" stroke="#c9ced8" stroke-width="1.6"/>'
+                           f'<path d="M16 8 L25 11 Q25 23 16 29 Q7 23 7 11 Z" fill="#3b82f6" {_o()}/><path d="M16 12 L16 25 M11 16 L21 16" stroke="#dbeafe" stroke-width="2"/>'),
+    # ---- 스킬 (assets/img/icons/skills)
+    'skills/slash': (f'<path d="M5 26 Q10 8 27 4 Q14 12 9 27 Z" fill="#f4f8ff" {_o()}/>'
+                     '<path d="M11 28 Q17 14 29 10" fill="none" stroke="#9cc3ff" stroke-width="2" stroke-linecap="round"/>'),
+    'skills/fire': (f'<path d="M16 30 Q5 28 6 18 Q7 11 12 6 Q12 12 15 13 Q14 6 19 2 Q20 9 24 12 Q28 17 26 23 Q24 29 16 30 Z" fill="#ff8a2a" {_o()}/>'
+                    '<path d="M16 28 Q10 27 11 21 Q12 17 15 15 Q16 19 18 19 Q21 21 21 24 Q20 28 16 28 Z" fill="#ffe27a"/>'),
+    'skills/heal': (f'<path d="M12 4h8v8h8v8h-8v8h-8v-8H4v-8h8z" fill="#4ade80" {_o()}/>'
+                    '<path d="M14 7h3v7" fill="none" stroke="#dcfce7" stroke-width="1.6"/>' + sparkle(27, 2, '#ffffff')),
+    'skills/aimed_shot': (f'<circle cx="16" cy="16" r="11" fill="#fef3c7" {_o()}/><circle cx="16" cy="16" r="6.5" fill="#ef4444" {_o()}/>'
+                          '<circle cx="16" cy="16" r="2.2" fill="#fef3c7"/>' + outlined_path('M29 3 L17 15', '#c9b48a', 1.4)),
+    'skills/gale': (outlined_path('M4 9 Q18 4 24 9 Q28 13 22 14', '#86efac') + outlined_path('M3 17 Q20 13 27 18', '#d9fbe5')
+                    + outlined_path('M6 25 Q16 21 21 24 Q24 27 19 28', '#4ade80')),
+    'skills/heal_all': (f'<path d="M16 28 C10 24 4 19 4 12 A6 6 0 0 1 16 9.5 A6 6 0 0 1 28 12 C28 19 22 24 16 28 Z" fill="#22c55e" {_o()}/>'
+                        '<path d="M14 11h4v4h4v4h-4v4h-4v-4h-4v-4h4z" fill="#f0fdf4"/>'),
+    'skills/power_strike': (f'<path d="M16 2 L19 11 L28 9 L21 16 L28 23 L19 21 L16 30 L13 21 L4 23 L11 16 L4 9 L13 11 Z" fill="#fb923c" {_o()}/>'
+                            '<path d="M16 9 L18 14 L23 15 L18 17 L16 23 L14 17 L9 15 L14 14 Z" fill="#fff7c2"/>'),
+    'skills/royal_slash': sword('#fff7c2', '#f2c94c', '#a3263a', wide=True) + outlined_path('M21 14 L26 15 L22 20 L27 21', '#facc15', 1.6),
+    'skills/guard': (f'<path d="M16 3 L27 7 Q27 22 16 29 Q5 22 5 7 Z" fill="#3b82f6" {_o()}/>'
+                     '<path d="M16 7 L23 9.5 Q23 20 16 25 Z" fill="#93c5fd"/>'),
+    'skills/slingshot': (pebble(21, 12, 5.5) + '<path d="M3 20 L13 16 M5 26 L14 20 M9 30 L16 24" stroke="#f4f1e6" stroke-width="1.8" stroke-linecap="round"/>'),
+    'skills/pebble_rain': (''.join(pebble(x, y, r) for x, y, r in ((9, 9, 4), (22, 7, 3.4), (16, 18, 4.4), (7, 24, 3), (25, 22, 3.6)))
+                           + '<path d="M14 2 L11 6 M27 1 L25 4" stroke="#f4f1e6" stroke-width="1.4" stroke-linecap="round"/>'),
+    'skills/herb_toss': (f'<path d="M5 27 Q8 12 26 5 Q24 22 5 27 Z" fill="#7fd36a" {_o()}/>'
+                         '<path d="M6 26 Q14 17 22 9" fill="none" stroke="#2f6a22" stroke-width="1.4"/>' + sparkle(26, 18)),
+}
+
+
+def color_icon_svg(body):
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">{body}</svg>'
 
 
 def gear_icon(teeth=8, r_out=10.2, r_in=7.6, r_hole=3.2):
@@ -180,7 +328,12 @@ def main():
     for name, body in ICONS.items():
         with open(os.path.join(idir, f'{name}.svg'), 'w', encoding='utf-8') as f:
             f.write(icon_svg(body))
-    print(f'portraits={len(PORTRAITS)} icons={len(ICONS)}')
+    for name, body in COLOR_ICONS.items():
+        path = os.path.join(idir, f'{name}.svg')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(color_icon_svg(body))
+    print(f'portraits={len(PORTRAITS)} icons={len(ICONS)} color_icons={len(COLOR_ICONS)}')
 
 
 if __name__ == '__main__':

@@ -295,7 +295,8 @@ export function initScenarioTab() {
 @event id 맵id:x,y 이름    맵 이벤트 (장면과 같은 문법)
 * sprite 캐릭터키 [when 조건]  NPC 표시 (있으면 말 걸기 이벤트)
 * tile 타일id [when 조건]      그 칸 타일 바꿔 그리기 (열린 상자)
-* trigger talk|touch          말 걸기 / 밟기
+* trigger talk|touch|enter    말 걸기 / 밟기 / 맵에 들어올 때
+* when 조건                    조건이 맞을 때만 이벤트 동작
 * face down|up|left|right     NPC 기본 방향
 
 @quest id main|side 제목   (다음 줄부터 설명)

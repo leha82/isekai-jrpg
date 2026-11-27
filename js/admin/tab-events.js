@@ -31,11 +31,13 @@ function draw() {
   cv.dataset.t = t;
 }
 
+const TRIGGER_LABEL = { talk: "말 걸기", touch: "밟기", enter: "맵 진입" };
+
 function renderList() {
   const list = events();
   $("ev-table").innerHTML = `<tr><th>ID</th><th>이름</th><th>좌표</th><th>방식</th><th>스프라이트</th><th>파일</th></tr>` +
     (list.length ? list.map((ev, i) => `<tr data-i="${i}" class="${ev === E.sel ? "active" : ""}"><td>${esc(ev.id)}</td><td>${esc(ev.name)}</td><td>${ev.x},${ev.y}</td>
-      <td>${ev.trigger === "talk" ? "말 걸기" : "밟기"}</td><td>${esc(ev.sprite ? ev.sprite.key : "-")}</td><td>${esc(ev.file)}:${ev.line}</td></tr>`).join("")
+      <td>${TRIGGER_LABEL[ev.trigger] || ev.trigger}${ev.when ? ` (조건: ${esc(ev.when.src)})` : ""}</td><td>${esc(ev.sprite ? ev.sprite.key : "-")}</td><td>${esc(ev.file)}:${ev.line}</td></tr>`).join("")
       : `<tr><td colspan="6" class="muted">이 맵에는 이벤트가 없습니다.</td></tr>`);
   $("ev-table").querySelectorAll("tr[data-i]").forEach(tr => {
     tr.onclick = () => { E.sel = list[+tr.dataset.i]; E.form = null; E.moving = false; render(); };
@@ -50,7 +52,7 @@ function renderDetail() {
   if (!ev) { el.innerHTML = `<p class="muted">왼쪽 목록이나 맵에서 이벤트를 고르세요.<br>노란 칸 = 이벤트, 보라 칸 = 출구</p>`; return; }
   const preview = ev.steps.slice(0, 6).map(s => s.t === "say" ? `${esc(s.speaker)}: ${esc(s.text.split("\n")[0])}` : s.t === "jump" ? `${s.cond ? "? " + esc(s.cond.src) + " " : ""}-> ${esc(s.target)}` : `> ${esc(s.name)}`).join("<br>");
   el.innerHTML = `<div class="card-title">${esc(ev.name)} <small>${esc(ev.id)}</small></div>
-    <div class="meta">${esc(ev.map)} (${ev.x}, ${ev.y}) · ${ev.trigger === "talk" ? "말 걸기" : "밟기"}${ev.sprite ? ` · ${esc(ev.sprite.key)}${ev.sprite.cond ? ` (조건: ${esc(ev.sprite.cond.src)})` : ""}` : ""}</div>
+    <div class="meta">${esc(ev.map)} (${ev.x}, ${ev.y}) · ${TRIGGER_LABEL[ev.trigger] || ev.trigger}${ev.when ? ` (조건: ${esc(ev.when.src)})` : ""}${ev.sprite ? ` · ${esc(ev.sprite.key)}${ev.sprite.cond ? ` (조건: ${esc(ev.sprite.cond.src)})` : ""}` : ""}</div>
     ${ev.sprite ? `<canvas id="ev-sprite"></canvas>` : ""}
     <div class="code-preview">${preview || "<span class='muted'>내용 없음</span>"}${ev.steps.length > 6 ? "<br>…" : ""}</div>
     <div class="btn-row">

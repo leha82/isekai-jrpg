@@ -78,7 +78,7 @@
   },
   {
    "path": "assets/img/characters.png",
-   "size": 10012
+   "size": 10634
   },
   {
    "path": "assets/img/icons/bag.svg",
@@ -89,8 +89,104 @@
    "size": 286
   },
   {
+   "path": "assets/img/icons/copy.svg",
+   "size": 301
+  },
+  {
+   "path": "assets/img/icons/equip.svg",
+   "size": 273
+  },
+  {
    "path": "assets/img/icons/heart.svg",
    "size": 263
+  },
+  {
+   "path": "assets/img/icons/items/chain_mail.svg",
+   "size": 976
+  },
+  {
+   "path": "assets/img/icons/items/cloth_armor.svg",
+   "size": 412
+  },
+  {
+   "path": "assets/img/icons/items/elven_bow.svg",
+   "size": 730
+  },
+  {
+   "path": "assets/img/icons/items/elven_cloak.svg",
+   "size": 608
+  },
+  {
+   "path": "assets/img/icons/items/ether.svg",
+   "size": 592
+  },
+  {
+   "path": "assets/img/icons/items/guard_amulet.svg",
+   "size": 386
+  },
+  {
+   "path": "assets/img/icons/items/herb.svg",
+   "size": 597
+  },
+  {
+   "path": "assets/img/icons/items/hi_potion.svg",
+   "size": 675
+  },
+  {
+   "path": "assets/img/icons/items/hunting_bow.svg",
+   "size": 730
+  },
+  {
+   "path": "assets/img/icons/items/iron_armor.svg",
+   "size": 472
+  },
+  {
+   "path": "assets/img/icons/items/knight_sword.svg",
+   "size": 783
+  },
+  {
+   "path": "assets/img/icons/items/leather_armor.svg",
+   "size": 504
+  },
+  {
+   "path": "assets/img/icons/items/luck_charm.svg",
+   "size": 735
+  },
+  {
+   "path": "assets/img/icons/items/oak_staff.svg",
+   "size": 602
+  },
+  {
+   "path": "assets/img/icons/items/pendant.svg",
+   "size": 522
+  },
+  {
+   "path": "assets/img/icons/items/potion.svg",
+   "size": 592
+  },
+  {
+   "path": "assets/img/icons/items/power_ring.svg",
+   "size": 456
+  },
+  {
+   "path": "assets/img/icons/items/sage_pendant.svg",
+   "size": 375
+  },
+  {
+   "path": "assets/img/icons/items/short_sword.svg",
+   "size": 783
+  },
+  {
+   "path": "assets/img/icons/items/steel_sword.svg",
+   "size": 783
+  },
+  {
+   "path": "assets/img/icons/items/swift_anklet.svg",
+   "size": 551
+  },
+  {
+   "path": "assets/img/icons/items/wood_slingshot.svg",
+   "size": 591
   },
   {
    "path": "assets/img/icons/load.svg",
@@ -129,6 +225,54 @@
    "size": 263
   },
   {
+   "path": "assets/img/icons/skills/aimed_shot.svg",
+   "size": 588
+  },
+  {
+   "path": "assets/img/icons/skills/fire.svg",
+   "size": 391
+  },
+  {
+   "path": "assets/img/icons/skills/gale.svg",
+   "size": 741
+  },
+  {
+   "path": "assets/img/icons/skills/guard.svg",
+   "size": 290
+  },
+  {
+   "path": "assets/img/icons/skills/heal.svg",
+   "size": 383
+  },
+  {
+   "path": "assets/img/icons/skills/heal_all.svg",
+   "size": 339
+  },
+  {
+   "path": "assets/img/icons/skills/herb_toss.svg",
+   "size": 390
+  },
+  {
+   "path": "assets/img/icons/skills/pebble_rain.svg",
+   "size": 1110
+  },
+  {
+   "path": "assets/img/icons/skills/power_strike.svg",
+   "size": 361
+  },
+  {
+   "path": "assets/img/icons/skills/royal_slash.svg",
+   "size": 1003
+  },
+  {
+   "path": "assets/img/icons/skills/slash.svg",
+   "size": 329
+  },
+  {
+   "path": "assets/img/icons/skills/slingshot.svg",
+   "size": 384
+  },
+  {
    "path": "assets/img/icons/sound.svg",
    "size": 276
   },
@@ -163,6 +307,10 @@
   {
    "path": "assets/img/portraits/ria.svg",
    "size": 2630
+  },
+  {
+   "path": "assets/img/portraits/tobi.svg",
+   "size": 2674
   },
   {
    "path": "assets/img/tiles.png",

@@ -1,13 +1,14 @@
 // ==========================================
 // 전투 화면 렌더러 (캔버스 애니메이션)
-//  - 아군: 오른쪽, 왼쪽을 바라보는 걷기 스프라이트 / 적: 왼쪽, 몬스터 시트
+//  - 아군: 왼쪽 아래, 오른쪽을 바라보는 옆모습(걷기 스프라이트) / 적: 오른쪽 위, 몬스터 시트
+//  - 캔버스 크기는 화면 방향에 따라 다르다 (가로 640×300, 세로 모드 480×360). 배치는 비율로 계산한다.
 //  - 연출: 돌진·복귀 트윈, 베기·화염구·바람·치유·방패·암흑·냉기·지진 이펙트, 떠오르는 숫자, 화면 흔들림·번쩍임
 // ==========================================
 const BV = {
   canvas: null, ctx: null, running: false, last: 0,
   bg: null, actors: [], effects: [], texts: [], shake: 0, flash: null
 };
-const BV_W = 640, BV_H = 300, GROUND_Y = 248;
+let BV_W = 640, BV_H = 300;
 
 function bvInit() {
   BV.canvas = $("battle-canvas");
@@ -16,6 +17,7 @@ function bvInit() {
 
 function bvStart(bgKey) {
   if (!BV.ctx) bvInit();
+  BV_W = BV.canvas.width; BV_H = BV.canvas.height;
   BV.bg = Images.bg[bgKey] || Images.bg.meadow;
   BV.actors = []; BV.effects = []; BV.texts = []; BV.shake = 0; BV.flash = null;
   if (!BV.running) { BV.running = true; BV.last = performance.now(); requestAnimationFrame(bvLoop); }
@@ -26,9 +28,17 @@ const speed = () => 1 / (GameData.battle.animationSpeed || 1);
 const bvWait = (ms) => wait(ms * speed());
 
 // ---------- 배치 ----------
+// 적: 오른쪽 위 (발 위치 기준, x = 가운데). 아군: 왼쪽 아래 대각선 (x = 왼쪽 끝, y = 발). 앞줄(리더)이 적에 가장 가깝다.
+function enemySlots(n) {
+  const W = BV_W, H = BV_H;
+  if (n === 1) return [[W * .72, H * .6]];
+  if (n === 2) return [[W * .63, H * .55], [W * .84, H * .63]];
+  return [[W * .6, H * .52], [W * .75, H * .63], [W * .89, H * .5]];
+}
+function allySlot(i) { return [Math.round(BV_W * .34 - i * BV_W * .068), Math.round(BV_H * .64 + i * BV_H * .1)]; }
+
 function bvLayoutEnemies(enemies) {
-  const n = enemies.length;
-  const slots = n === 1 ? [[180, GROUND_Y]] : n === 2 ? [[120, GROUND_Y - 20], [250, GROUND_Y + 4]] : [[90, GROUND_Y - 26], [200, GROUND_Y + 6], [300, GROUND_Y - 30]];
+  const slots = enemySlots(enemies.length);
   enemies.forEach((e, i) => {
     const src = monsterSrc(e.sprite);
     const scale = src && src.w > 32 ? 2.6 : 3;
@@ -38,8 +48,20 @@ function bvLayoutEnemies(enemies) {
 
 function bvLayoutAllies(allies) {
   allies.forEach((m, i) => {
-    bvAddActor({ kind: "ally", ref: m, homeX: 470 + i * 34, homeY: 150 + i * 46, scale: 3 });
+    const [x, y] = allySlot(i);
+    bvAddActor({ kind: "ally", ref: m, homeX: x, homeY: y, scale: 3 });
   });
+}
+
+// 화면 방향이 바뀌면(세로↔가로) 캔버스 크기에 맞춰 다시 배치한다
+function bvRelayout() {
+  if (!BV.canvas || !BV.actors.length) return;
+  BV_W = BV.canvas.width; BV_H = BV.canvas.height;
+  const en = BV.actors.filter(a => a.kind === "enemy"), al = BV.actors.filter(a => a.kind === "ally");
+  const slots = enemySlots(en.length);
+  en.forEach((a, i) => { a.homeX = slots[i][0]; a.homeY = slots[i][1]; });
+  al.forEach((a, i) => { [a.homeX, a.homeY] = allySlot(i); });
+  BV.actors.forEach(a => { a.tween = null; a.x = a.homeX; a.y = a.homeY; });
 }
 
 function bvAddActor(a) {
@@ -95,16 +117,20 @@ function bvDraw(now) {
   c.imageSmoothingEnabled = false;
   const sx = BV.shake ? (Math.random() - .5) * BV.shake * 2 : 0, sy = BV.shake ? (Math.random() - .5) * BV.shake : 0;
   c.translate(sx, sy);
-  // 배경 (320x120 → 640x240) + 아래쪽 바닥
+  // 배경 (320x120 → 화면 폭에 맞춰 늘림) + 아래쪽 바닥
   c.fillStyle = "#1a1626";
   c.fillRect(-10, -10, BV_W + 20, BV_H + 20);
+  const bgH = Math.round(BV_H * .8);
   if (BV.bg) {
-    c.drawImage(BV.bg, 0, 0, BV.bg.width, BV.bg.height, 0, 0, BV_W, 240);
-    c.drawImage(BV.bg, 0, BV.bg.height - 2, BV.bg.width, 2, 0, 240, BV_W, 70);
+    // 세로 모드는 화면이 좁으므로 배경 가운데를 잘라 쓴다
+    const srcW = Math.min(BV.bg.width, BV.bg.height * BV_W / bgH);
+    const sx = (BV.bg.width - srcW) / 2;
+    c.drawImage(BV.bg, sx, 0, srcW, BV.bg.height, 0, 0, BV_W, bgH);
+    c.drawImage(BV.bg, sx, BV.bg.height - 2, srcW, 2, 0, bgH, BV_W, BV_H - bgH + 10);
   }
-  const grad = c.createLinearGradient(0, 200, 0, BV_H);
+  const grad = c.createLinearGradient(0, BV_H * .66, 0, BV_H);
   grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(1, "rgba(0,0,0,0.45)");
-  c.fillStyle = grad; c.fillRect(0, 200, BV_W, 100);
+  c.fillStyle = grad; c.fillRect(0, BV_H * .66, BV_W, BV_H * .34);
 
   // 액터 (y 순)
   BV.actors.slice().sort((a, b) => a.y - b.y).forEach(a => bvDrawActor(c, a, now));
@@ -169,14 +195,14 @@ function bvDrawActor(c, a, now) {
     const m = a.ref;
     const down = m.hp <= 0;
     const frame = a.walk ? (Math.floor(t * 8) % 2 ? 0 : 2) : 1;
-    const s = charSrc(m.sprite, "left", frame);
+    const s = charSrc(m.sprite, "right", frame); // 적(오른쪽)을 바라보는 옆모습
     if (!s) return;
     const size = 16 * a.scale;
     c.fillStyle = "rgba(0,0,0,0.3)";
     c.beginPath(); c.ellipse(a.x + size / 2, a.y + 1, size * .32, 6, 0, 0, Math.PI * 2); c.fill();
     c.save();
     if (down) {
-      c.translate(a.x + size / 2, a.y - 10); c.rotate(-Math.PI / 2); c.globalAlpha = .55 * a.alpha;
+      c.translate(a.x + size / 2, a.y - 10); c.rotate(Math.PI / 2); c.globalAlpha = .55 * a.alpha;
       c.drawImage(Images.characters, s.sx, s.sy, s.size, s.size, -size / 2, -size / 2, size, size);
     } else {
       const bob = a.active ? Math.sin(t * 6) * 2 : 0;
@@ -254,14 +280,28 @@ const FX = {
       c.restore();
     });
   },
+  // 화살: 날아가는 방향으로 회전
   arrow(from, target) {
     const a = bvCenter(from), b = bvCenter(target);
     return bvEffect(260, (c, p) => {
-      const x = a.x + (b.x - a.x) * p, y = a.y + (b.y - a.y) * p - Math.sin(p * Math.PI) * 30;
+      const pos = (q) => [a.x + (b.x - a.x) * q, a.y + (b.y - a.y) * q - Math.sin(q * Math.PI) * 30];
+      const [x, y] = pos(p), [x2, y2] = pos(Math.min(1, p + .02));
+      c.save(); c.translate(x, y); c.rotate(Math.atan2(y2 - y, x2 - x));
       c.strokeStyle = "#f4e4c0"; c.lineWidth = 3;
-      c.beginPath(); c.moveTo(x + 14, y - 2); c.lineTo(x - 6, y + 1); c.stroke();
-      c.fillStyle = "#cfd6e0"; c.fillRect(x - 9, y - 1, 5, 4);
+      c.beginPath(); c.moveTo(-16, 0); c.lineTo(6, 0); c.stroke();
+      c.fillStyle = "#cfd6e0"; c.beginPath(); c.moveTo(11, 0); c.lineTo(4, -4); c.lineTo(4, 4); c.fill();
+      c.restore();
     });
+  },
+  // 새총 돌멩이
+  stone(from, target, delay = 0) {
+    const a = bvCenter(from), b = bvCenter(target);
+    return bvEffect(240, (c, p) => {
+      const x = a.x + (b.x - a.x) * p, y = a.y + (b.y - a.y) * p - Math.sin(p * Math.PI) * 22;
+      c.fillStyle = "#1a1626"; c.beginPath(); c.arc(x, y, 6, 0, Math.PI * 2); c.fill();
+      c.fillStyle = "#9a9aa6"; c.beginPath(); c.arc(x, y, 4.5, 0, Math.PI * 2); c.fill();
+      c.fillStyle = "#e4e4ec"; c.fillRect(x - 2.5, y - 2.5, 2, 2);
+    }, delay);
   },
   async fire(from, target) {
     const a = bvCenter(from), b = bvCenter(target);

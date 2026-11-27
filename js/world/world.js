@@ -17,17 +17,21 @@ function loadViewSetting() {
   const ok = GameData.game.views.some(v => v.cols === saved);
   setViewCols(ok ? saved : GameData.game.defaultView);
 }
+// 칸 크기는 화면의 긴 변(640) 기준. 세로 모드(480×640)에서는 가로로 보이는 칸이 줄고 세로로 더 많이 보인다.
 function setViewCols(cols) {
   View.cols = cols;
-  View.ts = canvas.width / cols;
+  View.ts = Math.max(canvas.width, canvas.height) / cols;
   try { localStorage.setItem("view_cols", String(cols)); } catch (e) {}
 }
 
 // ---------- 맵 조회 ----------
 function inMap(m, x, y) { return x >= 0 && y >= 0 && x < m.w && y < m.h; }
 
-function mapEvents() { return SCN ? SCN.events.filter(e => e.map === player.map) : []; }
-function eventAt(x, y) { return mapEvents().find(e => e.x === x && e.y === y) || null; }
+// 칸에 놓이는 이벤트 (맵 진입 이벤트 * trigger enter 는 좌표와 상관없이 맵에 들어올 때 실행되므로 제외)
+function mapEvents() { return SCN ? SCN.events.filter(e => e.map === player.map && e.trigger !== "enter") : []; }
+// * when 조건이 있으면 조건이 맞을 때만 이벤트가 동작한다
+function eventActive(ev) { return !ev.when || ScenarioFormat.evalCondition(ev.when, scenarioState()); }
+function eventAt(x, y) { return mapEvents().find(e => e.x === x && e.y === y && eventActive(e)) || null; }
 function npcVisible(ev) { return !!(ev.sprite && ScenarioFormat.evalCondition(ev.sprite.cond, scenarioState())); }
 function npcAt(x, y) { const ev = eventAt(x, y); return ev && npcVisible(ev) ? ev : null; }
 
@@ -107,7 +111,7 @@ function drawWorld(now) {
   }
 
   // 캐릭터 (y 순서로 그려 겹침을 자연스럽게)
-  const actors = mapEvents().filter(npcVisible).map(ev => ({
+  const actors = mapEvents().filter(ev => eventActive(ev) && npcVisible(ev)).map(ev => ({
     y: ev.y, draw: () => drawChar(ev.sprite.key, World.npcFace[ev.id] || ev.face || "down", 1, ev.x, ev.y, camX, camY, 0)
   }));
   const walkFrame = World.move ? (pp.p < 0.5 ? (World.stepParity ? 0 : 2) : 1) : 1;
@@ -229,7 +233,18 @@ async function doWarp(mapId, x, y, dir) {
   await wait(60);
   await fadeTo(0, 260);
   World.transitioning = false;
+  if (runEnterEvent(mapId)) return; // 맵 진입 이벤트가 있으면 그 장면이 끝날 때 자동 저장된다
   requestAutoSave("map");  // 다른 맵으로 이동하면 자동 저장
+}
+
+// 맵에 들어왔을 때 실행할 이벤트(* trigger enter, * when 조건)를 하나 실행한다
+function runEnterEvent(mapId) {
+  if (!SCN || gameState !== "WORLD") return false;
+  const ev = SCN.events.find(e => e.map === mapId && e.trigger === "enter" && eventActive(e));
+  if (!ev) return false;
+  releaseAllDirs();
+  runEvent(ev);
+  return true;
 }
 
 function enterMap(mapId, x, y, dir) {
@@ -239,6 +254,7 @@ function enterMap(mapId, x, y, dir) {
   World.map = GameData.maps[mapId];
   World.move = null;
   World.sinceBattle = 0;
+  markVisited(mapId);
   if (changed) { World.npcFace = {}; showMapBanner(World.map.name); }
   playBGM(World.map.bgm);
   updateHUD();

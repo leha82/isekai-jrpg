@@ -2,7 +2,7 @@
  "items": {
   "potion": {
    "name": "체력 포션",
-   "icon": "🧪",
+   "icon": "assets/img/icons/items/potion.svg",
    "type": "heal_hp",
    "amount": 45,
    "price": 20,
@@ -10,7 +10,7 @@
   },
   "hi_potion": {
    "name": "고급 포션",
-   "icon": "💖",
+   "icon": "assets/img/icons/items/hi_potion.svg",
    "type": "heal_hp",
    "amount": 120,
    "price": 60,
@@ -18,7 +18,7 @@
   },
   "ether": {
    "name": "마력 에테르",
-   "icon": "💧",
+   "icon": "assets/img/icons/items/ether.svg",
    "type": "heal_mp",
    "amount": 20,
    "price": 25,
@@ -26,17 +26,245 @@
   },
   "herb": {
    "name": "은빛 약초",
-   "icon": "🌿",
+   "icon": "assets/img/icons/items/herb.svg",
    "type": "key",
    "price": 0,
    "desc": "속삭이는 숲길에서만 자라는 약초. 하젤 촌장이 찾고 있다."
   },
   "pendant": {
    "name": "은 펜던트",
-   "icon": "📿",
+   "icon": "assets/img/icons/items/pendant.svg",
    "type": "key",
    "price": 0,
    "desc": "루센의 소녀가 잃어버린 펜던트. 아버지의 유품이라고 한다."
+  },
+  "short_sword": {
+   "name": "숏소드",
+   "icon": "assets/img/icons/items/short_sword.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 4
+   },
+   "price": 50,
+   "for": [
+    "hero",
+    "garen"
+   ],
+   "desc": "가볍고 다루기 쉬운 한손검."
+  },
+  "steel_sword": {
+   "name": "강철 검",
+   "icon": "assets/img/icons/items/steel_sword.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 9,
+    "str": 1
+   },
+   "price": 190,
+   "for": [
+    "hero",
+    "garen"
+   ],
+   "desc": "루센 대장간에서 벼린 튼튼한 검."
+  },
+  "knight_sword": {
+   "name": "기사의 대검",
+   "icon": "assets/img/icons/items/knight_sword.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 6
+   },
+   "price": 120,
+   "for": [
+    "garen"
+   ],
+   "desc": "루센 기사단에 지급되는 양손 대검."
+  },
+  "hunting_bow": {
+   "name": "사냥활",
+   "icon": "assets/img/icons/items/hunting_bow.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 4,
+    "dex": 1
+   },
+   "price": 60,
+   "for": [
+    "ria"
+   ],
+   "desc": "엘브레아 정찰병의 기본 활."
+  },
+  "elven_bow": {
+   "name": "엘프 장궁",
+   "icon": "assets/img/icons/items/elven_bow.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 8,
+    "dex": 2
+   },
+   "price": 210,
+   "for": [
+    "ria"
+   ],
+   "desc": "세계수 가지로 만든 장궁. 화살이 곧게 난다."
+  },
+  "wood_slingshot": {
+   "name": "나무 새총",
+   "icon": "assets/img/icons/items/wood_slingshot.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 3,
+    "dex": 1
+   },
+   "price": 30,
+   "for": [
+    "tobi"
+   ],
+   "desc": "토비가 직접 깎아 만든 새총."
+  },
+  "oak_staff": {
+   "name": "떡갈나무 지팡이",
+   "icon": "assets/img/icons/items/oak_staff.svg",
+   "type": "weapon",
+   "bonus": {
+    "atk": 1,
+    "matk": 6,
+    "int": 1
+   },
+   "price": 150,
+   "for": [
+    "hero",
+    "ria"
+   ],
+   "desc": "마력이 잘 흐르는 지팡이. 마법 위주로 싸울 때."
+  },
+  "cloth_armor": {
+   "name": "여행자의 옷",
+   "icon": "assets/img/icons/items/cloth_armor.svg",
+   "type": "armor",
+   "bonus": {
+    "def": 1,
+    "hp": 5
+   },
+   "price": 30,
+   "for": [],
+   "desc": "두툼한 천으로 지은 여행복."
+  },
+  "leather_armor": {
+   "name": "가죽 갑옷",
+   "icon": "assets/img/icons/items/leather_armor.svg",
+   "type": "armor",
+   "bonus": {
+    "def": 3,
+    "hp": 10
+   },
+   "price": 90,
+   "for": [],
+   "desc": "움직이기 편한 가죽 갑옷."
+  },
+  "iron_armor": {
+   "name": "철 갑옷",
+   "icon": "assets/img/icons/items/iron_armor.svg",
+   "type": "armor",
+   "bonus": {
+    "def": 4,
+    "hp": 12
+   },
+   "price": 150,
+   "for": [
+    "hero",
+    "garen"
+   ],
+   "desc": "무겁지만 든든한 철판 갑옷."
+  },
+  "chain_mail": {
+   "name": "사슬 갑옷",
+   "icon": "assets/img/icons/items/chain_mail.svg",
+   "type": "armor",
+   "bonus": {
+    "def": 7,
+    "hp": 20
+   },
+   "price": 260,
+   "for": [
+    "hero",
+    "garen"
+   ],
+   "desc": "촘촘한 쇠사슬로 엮은 갑옷."
+  },
+  "elven_cloak": {
+   "name": "엘프 망토",
+   "icon": "assets/img/icons/items/elven_cloak.svg",
+   "type": "armor",
+   "bonus": {
+    "def": 3,
+    "hp": 8,
+    "agi": 2
+   },
+   "price": 170,
+   "for": [
+    "hero",
+    "ria",
+    "tobi"
+   ],
+   "desc": "바람을 타는 가벼운 망토."
+  },
+  "luck_charm": {
+   "name": "행운의 부적",
+   "icon": "assets/img/icons/items/luck_charm.svg",
+   "type": "accessory",
+   "bonus": {
+    "dex": 2
+   },
+   "price": 60,
+   "for": [],
+   "desc": "네잎 클로버 부적. 치명타가 잘 터진다."
+  },
+  "power_ring": {
+   "name": "힘의 반지",
+   "icon": "assets/img/icons/items/power_ring.svg",
+   "type": "accessory",
+   "bonus": {
+    "str": 2
+   },
+   "price": 150,
+   "for": [],
+   "desc": "붉은 보석이 박힌 반지."
+  },
+  "swift_anklet": {
+   "name": "바람의 발찌",
+   "icon": "assets/img/icons/items/swift_anklet.svg",
+   "type": "accessory",
+   "bonus": {
+    "agi": 3
+   },
+   "price": 150,
+   "for": [],
+   "desc": "발이 가벼워져 공격을 잘 피한다."
+  },
+  "sage_pendant": {
+   "name": "현자의 목걸이",
+   "icon": "assets/img/icons/items/sage_pendant.svg",
+   "type": "accessory",
+   "bonus": {
+    "int": 2,
+    "mp": 10
+   },
+   "price": 180,
+   "for": [],
+   "desc": "마력을 모아 주는 자수정 목걸이."
+  },
+  "guard_amulet": {
+   "name": "수호의 부적",
+   "icon": "assets/img/icons/items/guard_amulet.svg",
+   "type": "accessory",
+   "bonus": {
+    "con": 2,
+    "def": 1
+   },
+   "price": 160,
+   "for": [],
+   "desc": "몸을 단단하게 지켜 주는 부적."
   }
  },
  "shops": {
@@ -44,7 +272,9 @@
    "name": "하젤 잡화점·여관",
    "items": [
     "potion",
-    "ether"
+    "ether",
+    "leather_armor",
+    "luck_charm"
    ],
    "inn": 10,
    "upgrades": false
@@ -54,14 +284,25 @@
    "items": [
     "potion",
     "hi_potion",
-    "ether"
+    "ether",
+    "power_ring",
+    "swift_anklet",
+    "sage_pendant",
+    "guard_amulet"
    ],
    "inn": 20,
    "upgrades": false
   },
   "lucen_smith": {
    "name": "루센 대장간",
-   "items": [],
+   "items": [
+    "steel_sword",
+    "elven_bow",
+    "oak_staff",
+    "iron_armor",
+    "chain_mail",
+    "elven_cloak"
+   ],
    "inn": 0,
    "upgrades": true
   }

@@ -35,7 +35,7 @@
 | 캐릭터·NPC, 능력치, 성장치, 스킬 배정 | `04_characters.md` (+ 성장 곡선이면 `07`) | `data/characters.json` |
 | 전투 흐름, 스킬, 공식, 연출 | `05_battle.md` (+ 스킬표가 있는 `04`) | `data/skills.json`, `data/battle.json`, `js/systems/battle*.js` |
 | 몬스터·보스, 행동, 전리품, 출현 | `06_monsters.md` (+ 출현 맵이면 `02`) | `data/monsters.json`, `data/maps/*.json` |
-| HUD·메뉴·퀘스트·경험치·상점·아이템·세이브 | `07_systems.md` | `js/systems/hud.js`, `shop.js`, `save.js`, `data/items.json` |
+| HUD·메뉴·퀘스트·경험치·상점·아이템·장비·세이브·지도 | `07_systems.md` (+ 지도면 `02`) | `js/systems/hud.js`, `worldmap.js`, `shop.js`, `save.js`, `data/items.json` |
 | 코드 구조, 상태 머신, 렌더링, 배포 | `08_tech.md` | `js/core/*`, `js/world/*`, `index.html` |
 | Firebase 설정, 로그인, 보안 규칙, 관리자 권한 | `10_firebase_setup.md` (+ `07`, `08`, `13`) | `firestore.rules`, `js/config.js` |
 | 시나리오 문법·명령 추가, 암호화 | `11_scenario.md` | `js/scenario/*` |

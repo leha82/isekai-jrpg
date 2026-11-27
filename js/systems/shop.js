@@ -17,19 +17,25 @@ function renderShop() {
   if (shop.inn) rows.push(row("🛏️ 여관 휴식", "파티 전원 HP/MP 완전 회복", shop.inn, `shopInn(${shop.inn})`));
   shop.items.forEach(id => {
     const it = GameData.items.items[id];
-    if (it) rows.push(row(`${it.icon || ""} ${it.name} <small>(보유 ${player.inventory[id] || 0})</small>`, it.desc || "", it.price, `shopBuy('${id}')`));
+    if (!it) return;
+    let desc = escapeHtml(it.desc || "");
+    if (isEquipItem(it)) {
+      const who = it.for && it.for.length ? it.for.map(c => { const d = memberDef(c); return d ? fmt(d.name) : c; }).join("·") : "누구나";
+      desc = `<span class="bonus">${ITEM_KIND[it.type]} · ${escapeHtml(bonusText(it.bonus))}</span> · 장착: ${escapeHtml(who)}<br>` + desc;
+    }
+    rows.push(row(`${iconTag(it.icon)} ${escapeHtml(it.name)} <small>(보유 ${player.inventory[id] || 0})</small>`, desc, it.price, `shopBuy('${id}')`));
   });
   if (shop.upgrades) {
     const w = player.weaponLv * u.weaponCostPerLevel, a = player.armorLv * u.armorCostPerLevel;
-    rows.push(row(`⚔️ 파티 무기 연마 <small>(현재 Lv.${player.weaponLv})</small>`, `전원 공격력 +${u.weaponAtk}, 마력 +${u.weaponMatk}`, w, `shopUpgrade('weapon', ${w})`));
-    rows.push(row(`🛡️ 파티 방어구 강화 <small>(현재 Lv.${player.armorLv})</small>`, `전원 방어력 +${u.armorDef}, 최대 HP +${u.armorHp}`, a, `shopUpgrade('armor', ${a})`));
+    rows.push(row(`⚔️ 파티 무기 연마 <small>(현재 Lv.${player.weaponLv})</small>`, `전원의 무기 공격력 +${u.weaponAtk}, 마력 +${u.weaponMatk}`, w, `shopUpgrade('weapon', ${w})`));
+    rows.push(row(`🛡️ 파티 방어구 강화 <small>(현재 Lv.${player.armorLv})</small>`, `전원의 방어구 방어력 +${u.armorDef}, 최대 HP +${u.armorHp}`, a, `shopUpgrade('armor', ${a})`));
   }
   openWindow(`🏪 ${shop.name} — 보유 ${player.gold.toLocaleString()} G`, rows.join("") || `<p class="muted">파는 물건이 없습니다.</p>`,
     { kind: "shop", onClose: () => requestAutoSave("shop") }); // 상점(NPC) 이용이 끝나면 자동 저장
 }
 
 function row(title, desc, price, action) {
-  return `<div class="item-row"><div><b>${title}</b><br><span class="muted small">${desc}</span></div>
+  return `<div class="item-row"><div class="grow"><b>${title}</b><br><span class="muted small">${desc}</span></div>
     <button class="item-btn" onclick="${action}" ${player.gold < price ? "disabled" : ""}>${price} G</button></div>`;
 }
 
@@ -49,6 +55,7 @@ function shopBuy(id) {
   player.gold -= it.price;
   player.inventory[id] = (player.inventory[id] || 0) + 1;
   SFX.coin();
+  if (isEquipItem(it)) showToast(`🛡️ ${it.name} 구입 — 메뉴의 장비(E)에서 장착하세요.`);
   updateHUD();
   renderShop();
 }

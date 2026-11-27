@@ -962,6 +962,8 @@ CHARACTERS = [
     ('orvel', '오르벨', {'hair': '#2a1a3a', 'cloth': '#3a2458', 'accent': '#f2c94c', 'robe': True, 'hood': '#4a2c70', 'glow_eyes': '#ff4fd8', 'cape': '#2a1a3a'}),
     ('captain', '흑기사 대장', {'hair': '#1a1a22', 'cloth': '#3a3a48', 'accent': '#c0392b', 'pants': '#22222c', 'helmet': '#4a4a5a', 'cape': '#8e1a1a', 'glow_eyes': '#ff3030'}),
     ('nun', '수녀', {'hair': '#3a2a1a', 'cloth': '#2a2a3a', 'accent': '#ffffff', 'robe': True, 'hood': '#2a2a3a'}),
+    # 하젤 마을의 장난꾸러기 소년 (새 줄은 목록 끝에만 추가한다 — 행 번호가 sprites.json 의 row)
+    ('tobi', '토비', {'hair': '#c0522a', 'cloth': '#4f9a3a', 'accent': '#f4e4b0', 'pants': '#7a5a3a', 'boots': '#4a3420', 'style': 'spiky'}),
 ]
 DIRS = ['down', 'left', 'right', 'up']
 

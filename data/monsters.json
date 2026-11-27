@@ -2,9 +2,19 @@
  "slime": {
   "name": "초원 슬라임",
   "sprite": "slime",
-  "hp": 28,
-  "atk": 7,
-  "def": 0,
+  "base": {
+   "hp": 23,
+   "atk": 1,
+   "matk": 5,
+   "def": 0
+  },
+  "stats": {
+   "str": 3,
+   "dex": 2,
+   "agi": 3,
+   "con": 1,
+   "int": 1
+  },
   "exp": 10,
   "gold": 8,
   "actions": [
@@ -25,9 +35,19 @@
  "bat": {
   "name": "동굴 박쥐",
   "sprite": "bat",
-  "hp": 22,
-  "atk": 9,
-  "def": 0,
+  "base": {
+   "hp": 17,
+   "atk": 1,
+   "matk": 7,
+   "def": 0
+  },
+  "stats": {
+   "str": 4,
+   "dex": 6,
+   "agi": 12,
+   "con": 1,
+   "int": 1
+  },
   "exp": 11,
   "gold": 9,
   "actions": [
@@ -43,9 +63,19 @@
  "goblin": {
   "name": "숲 고블린",
   "sprite": "goblin",
-  "hp": 48,
-  "atk": 12,
-  "def": 2,
+  "base": {
+   "hp": 28,
+   "atk": 2,
+   "matk": 8,
+   "def": 0
+  },
+  "stats": {
+   "str": 5,
+   "dex": 6,
+   "agi": 6,
+   "con": 4,
+   "int": 2
+  },
   "exp": 22,
   "gold": 18,
   "actions": [
@@ -66,9 +96,19 @@
  "slime_poison": {
   "name": "독 슬라임",
   "sprite": "slime_poison",
-  "hp": 42,
-  "atk": 10,
-  "def": 1,
+  "base": {
+   "hp": 27,
+   "atk": 2,
+   "matk": 6,
+   "def": 0
+  },
+  "stats": {
+   "str": 4,
+   "dex": 3,
+   "agi": 3,
+   "con": 3,
+   "int": 2
+  },
   "exp": 18,
   "gold": 14,
   "actions": [
@@ -84,9 +124,19 @@
  "wolf": {
   "name": "산늑대",
   "sprite": "wolf",
-  "hp": 70,
-  "atk": 17,
-  "def": 3,
+  "base": {
+   "hp": 40,
+   "atk": 3,
+   "matk": 13,
+   "def": 0
+  },
+  "stats": {
+   "str": 7,
+   "dex": 7,
+   "agi": 9,
+   "con": 6,
+   "int": 2
+  },
   "exp": 34,
   "gold": 22,
   "actions": [
@@ -102,9 +152,19 @@
  "golem": {
   "name": "바위 골렘",
   "sprite": "golem",
-  "hp": 120,
-  "atk": 20,
-  "def": 8,
+  "base": {
+   "hp": 40,
+   "atk": 2,
+   "matk": 16,
+   "def": 0
+  },
+  "stats": {
+   "str": 9,
+   "dex": 2,
+   "agi": 1,
+   "con": 16,
+   "int": 2
+  },
   "exp": 55,
   "gold": 35,
   "actions": [
@@ -133,9 +193,19 @@
  "snow_wolf": {
   "name": "설원 늑대",
   "sprite": "snow_wolf",
-  "hp": 95,
-  "atk": 23,
-  "def": 5,
+  "base": {
+   "hp": 45,
+   "atk": 5,
+   "matk": 19,
+   "def": 0
+  },
+  "stats": {
+   "str": 9,
+   "dex": 8,
+   "agi": 10,
+   "con": 10,
+   "int": 2
+  },
   "exp": 48,
   "gold": 30,
   "actions": [
@@ -151,9 +221,19 @@
  "wisp": {
   "name": "서리 정령",
   "sprite": "wisp",
-  "hp": 80,
-  "atk": 18,
-  "def": 2,
+  "base": {
+   "hp": 60,
+   "atk": 8,
+   "matk": 0,
+   "def": 0
+  },
+  "stats": {
+   "str": 5,
+   "dex": 6,
+   "agi": 10,
+   "con": 4,
+   "int": 9
+  },
   "exp": 50,
   "gold": 32,
   "actions": [
@@ -182,9 +262,19 @@
  "slime_ice": {
   "name": "얼음 슬라임",
   "sprite": "slime_ice",
-  "hp": 75,
-  "atk": 19,
-  "def": 4,
+  "base": {
+   "hp": 35,
+   "atk": 3,
+   "matk": 11,
+   "def": 0
+  },
+  "stats": {
+   "str": 8,
+   "dex": 3,
+   "agi": 3,
+   "con": 8,
+   "int": 4
+  },
   "exp": 40,
   "gold": 26,
   "actions": [
@@ -200,9 +290,19 @@
  "dark_knight": {
   "name": "녹턴 흑기사",
   "sprite": "dark_knight",
-  "hp": 150,
-  "atk": 28,
-  "def": 9,
+  "base": {
+   "hp": 60,
+   "atk": 4,
+   "matk": 22,
+   "def": 0
+  },
+  "stats": {
+   "str": 12,
+   "dex": 6,
+   "agi": 4,
+   "con": 18,
+   "int": 3
+  },
   "exp": 80,
   "gold": 50,
   "actions": [
@@ -223,9 +323,19 @@
  "wraith": {
   "name": "망령",
   "sprite": "wraith",
-  "hp": 120,
-  "atk": 26,
-  "def": 4,
+  "base": {
+   "hp": 80,
+   "atk": 8,
+   "matk": 4,
+   "def": 0
+  },
+  "stats": {
+   "str": 9,
+   "dex": 6,
+   "agi": 8,
+   "con": 8,
+   "int": 11
+  },
   "exp": 75,
   "gold": 45,
   "actions": [
@@ -249,9 +359,19 @@
  "captain": {
   "name": "흑기사 대장 바르구스",
   "sprite": "captain",
-  "hp": 420,
-  "atk": 32,
-  "def": 10,
+  "base": {
+   "hp": 320,
+   "atk": 4,
+   "matk": 16,
+   "def": 0
+  },
+  "stats": {
+   "str": 14,
+   "dex": 8,
+   "agi": 6,
+   "con": 20,
+   "int": 8
+  },
   "exp": 300,
   "gold": 200,
   "actions": [
@@ -280,9 +400,19 @@
  "orvel": {
   "name": "세계 관리자 오르벨",
   "sprite": "orvel",
-  "hp": 900,
-  "atk": 38,
-  "def": 10,
+  "base": {
+   "hp": 800,
+   "atk": 10,
+   "matk": 2,
+   "def": 0
+  },
+  "stats": {
+   "str": 14,
+   "dex": 10,
+   "agi": 8,
+   "con": 20,
+   "int": 18
+  },
   "exp": 0,
   "gold": 0,
   "actions": [

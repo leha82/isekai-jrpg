@@ -1,14 +1,14 @@
 // ==========================================
 // 입력 처리 — 키보드(누르고 있으면 계속 이동) + 가상 패드(터치·마우스 누르고 있기)
-// 필드 단축키 (우상단 아이콘 안에 표시): P/M 파티 · I 가방 · K 스킬 · Q 퀘스트 · F 저장 · N 소리 · O/Esc 설정
+// 필드 단축키 (우상단 아이콘 안에 표시): P 파티 · I 가방 · E 장비 · K 스킬 · Q 퀘스트 · M 지도 · F 저장 · N 소리 · O/Esc 설정
 // ==========================================
 const HOTKEYS = {
-  p: () => openMenu("party"), m: () => openMenu("party"), i: () => openMenu("items"), k: () => openMenu("skills"),
+  p: () => openMenu("party"), i: () => openMenu("items"), e: () => openMenu("equip"), k: () => openMenu("skills"), m: () => openMenu("map"),
   q: () => openMenu("quests"), f: () => openSaveWindow("save"), n: () => hudMute(), o: () => openMenu("settings"),
   escape: () => openMenu("settings")
 };
 // 창이 열려 있을 때 같은 단축키를 누르면 닫는다 (메뉴 탭은 해당 탭으로 전환)
-const HOTKEY_TAB = { p: "party", m: "party", i: "items", k: "skills", q: "quests", o: "settings" };
+const HOTKEY_TAB = { p: "party", i: "items", e: "equip", k: "skills", q: "quests", m: "map", o: "settings" };
 const KEY_DIR = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right" };
 
 function handleActionKey() {

@@ -1,7 +1,7 @@
 {
  "slash": {
   "name": "검격",
-  "icon": "⚔️",
+  "icon": "assets/img/icons/skills/slash.svg",
   "mp": 0,
   "type": "physical",
   "target": "enemy",
@@ -13,7 +13,7 @@
  },
  "fire": {
   "name": "파이어",
-  "icon": "🔥",
+  "icon": "assets/img/icons/skills/fire.svg",
   "mp": 5,
   "type": "magic",
   "target": "enemy",
@@ -25,7 +25,7 @@
  },
  "heal": {
   "name": "힐",
-  "icon": "✨",
+  "icon": "assets/img/icons/skills/heal.svg",
   "mp": 4,
   "type": "heal",
   "target": "ally",
@@ -37,7 +37,7 @@
  },
  "aimed_shot": {
   "name": "정밀사격",
-  "icon": "🏹",
+  "icon": "assets/img/icons/skills/aimed_shot.svg",
   "mp": 0,
   "type": "physical",
   "target": "enemy",
@@ -45,12 +45,12 @@
   "sfx": "slash",
   "power": 1.0,
   "variance": 6,
-  "crit": 0.2,
-  "desc": "급소를 노린다. 치명타 확률이 높다."
+  "crit": 0.15,
+  "desc": "급소를 노린다. 치명타 확률 +15%."
  },
  "gale": {
   "name": "질풍",
-  "icon": "🌪️",
+  "icon": "assets/img/icons/skills/gale.svg",
   "mp": 6,
   "type": "magic",
   "target": "all_enemies",
@@ -62,7 +62,7 @@
  },
  "heal_all": {
   "name": "전체치유",
-  "icon": "💚",
+  "icon": "assets/img/icons/skills/heal_all.svg",
   "mp": 8,
   "type": "heal",
   "target": "all_allies",
@@ -74,7 +74,7 @@
  },
  "power_strike": {
   "name": "강타",
-  "icon": "🗡️",
+  "icon": "assets/img/icons/skills/power_strike.svg",
   "mp": 0,
   "type": "physical",
   "target": "enemy",
@@ -86,7 +86,7 @@
  },
  "royal_slash": {
   "name": "왕가일섬",
-  "icon": "⚡",
+  "icon": "assets/img/icons/skills/royal_slash.svg",
   "mp": 6,
   "type": "physical",
   "target": "enemy",
@@ -98,12 +98,49 @@
  },
  "guard": {
   "name": "철벽수호",
-  "icon": "🛡️",
+  "icon": "assets/img/icons/skills/guard.svg",
   "mp": 0,
   "type": "guard",
   "target": "all_allies",
   "fx": "shield",
   "sfx": "guard",
   "desc": "이번 라운드 동안 파티가 받는 피해를 절반으로 줄인다."
+ },
+ "slingshot": {
+  "name": "새총",
+  "icon": "assets/img/icons/skills/slingshot.svg",
+  "mp": 0,
+  "type": "physical",
+  "target": "enemy",
+  "fx": "stone",
+  "sfx": "hit",
+  "power": 1.0,
+  "variance": 3,
+  "crit": 0.1,
+  "desc": "새총으로 돌멩이를 날린다. 치명타 확률 +10%."
+ },
+ "pebble_rain": {
+  "name": "돌멩이 세례",
+  "icon": "assets/img/icons/skills/pebble_rain.svg",
+  "mp": 4,
+  "type": "physical",
+  "target": "all_enemies",
+  "fx": "stone",
+  "sfx": "hit",
+  "power": 0.6,
+  "variance": 2,
+  "desc": "주머니의 돌멩이를 한꺼번에 쏜다. 적 전체에 물리 피해."
+ },
+ "herb_toss": {
+  "name": "약초 던지기",
+  "icon": "assets/img/icons/skills/herb_toss.svg",
+  "mp": 3,
+  "type": "heal",
+  "target": "ally",
+  "fx": "heal",
+  "sfx": "heal",
+  "base": 16,
+  "power": 0.5,
+  "desc": "초원에서 딴 약초를 던져 준다. 아군 하나 HP 회복."
  }
 }

@@ -5,9 +5,22 @@
  "defenseFactor": 0.5,
  "minDamage": 1,
  "enemyMinDamage": 2,
- "critChance": 0.08,
  "critMultiplier": 1.6,
  "guardReduction": 0.5,
+ "stats": {
+  "atkPerStr": 2,
+  "matkPerInt": 2,
+  "defPerCon": 0.5,
+  "hpPerCon": 5,
+  "mpPerInt": 2,
+  "critBase": 0.04,
+  "critPerDex": 0.005,
+  "critPerAgi": 0.001,
+  "evadePerAgi": 0.006,
+  "evadePerDex": 0.002,
+  "maxCrit": 0.5,
+  "maxEvade": 0.35
+ },
  "levelCurve": {
   "base": 20,
   "growth": 1.45

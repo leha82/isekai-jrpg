@@ -110,6 +110,11 @@ const firebaseConfig = {
 2. 따로 만들 컬렉션은 없다. 첫 저장 때 `saves/{uid}/slots/...` 문서가 생긴다.
 3. 무료 한도: 자동 저장 클라우드 쓰기는 20초에 최대 1번, 불러오기 창을 열 때 읽기 6회. 혼자 테스트하는 수준에서는 하루 한도(쓰기 2만·읽기 5만)에 한참 못 미친다.
 
+## 9. 플레이어 ID 추가 설정 (2026-11-28)
+1. **보안 규칙 다시 게시:** 저장소의 [`firestore.rules`](../firestore.rules) 전체를 Firestore → 규칙에 붙여 넣고 **게시**. (`players/{uid}` 규칙 추가 — 게시 전에는 플레이어 ID 가 화면에는 나오지만 Firestore 저장이 `permission-denied` 로 실패한다. 콘솔에 경고만 남고 게임은 계속된다)
+2. 따로 만들 컬렉션은 없다. 로그인하면 `players/{uid}` 문서가 생긴다: `{ playerId, name, createdAt, lastLoginAt }`.
+3. 규칙: 본인만 읽기·쓰기(관리자는 읽기), `playerId` 는 `^[A-Z]{6}-[0-9]{10}$` 형식이어야 하고 한 번 정하면 바꿀 수 없다.
+
 ## 6. 설정 완료 체크리스트
 - [x] 프로젝트 생성 (Spark 요금제 유지)
 - [x] Authentication → Google 사용 설정
@@ -117,6 +122,7 @@ const firebaseConfig = {
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
 - [x] 보안 규칙 게시
 - [x] 세이브 슬롯 규칙(`saves/{uid}/slots`) 재게시 (2026-11-27, 사용자 확인)
+- [ ] 플레이어 ID 규칙(`players/{uid}`) 재게시 (2026-11-28 추가 — 사용자 진행 필요)
 - [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
 - [x] (시나리오) `firestore.rules` 게시 (2026-11-27 확인)
 - [x] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드 (커밋 fb552c4)

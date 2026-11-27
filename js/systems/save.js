@@ -6,15 +6,18 @@
 //    슬롯마다 savedAt 이 더 최근인 쪽을 쓴다 (로그인 직후 양쪽을 맞춘다).
 //  - 자동 저장 시점: 전투에서 벗어날 때, 다른 맵으로 이동했을 때, NPC 대화(이벤트)가 끝났을 때, 스토리 진행(> save)
 //  - 자동 저장의 클라우드 쓰기는 AUTO_CLOUD_MIN_MS 간격으로 모아서 보낸다 (Firestore 무료 쓰기 한도 보호).
+//  - 수동 저장(슬롯 1~5)은 로그인했을 때만 할 수 있다. 로그인하지 않으면 자동 저장만 된다 (불러오기는 가능).
+//  - 플레이어 ID: 로그인하면 계정마다 하나씩 부여된다 (영문 대문자 6자리-숫자 10자리). Firestore players/{uid}
 // Firebase SDK 는 js/firebase/game-cloud.js (module) 가 window.cloud 로 노출한다. 못 불러와도 이 기기 저장은 동작한다.
 // ==========================================
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;  // 3: 5스탯·캐릭터별 장비 (능력치는 저장하지 않고 레벨·장비로 다시 계산)
 const SAVE_SLOTS = ["auto", "1", "2", "3", "4", "5"];
 const LOCAL_SAVE_PREFIX = "wedge_save_";
 const LEGACY_SAVE_KEY = "arcadia_isekai_jrpg_save_v1";  // 슬롯 도입 전 단일 세이브 → 자동 저장 슬롯으로 옮긴다
 const AUTO_CLOUD_MIN_MS = 20000;
-const PLAYER_SAVE_FIELDS = ["name", "map", "x", "y", "dir", "lv", "exp", "nextExp", "gold", "weaponLv", "armorLv", "storyFlag", "quests", "vars", "focusQuest"];
-const PARTY_SAVE_FIELDS = ["hp", "maxHp", "mp", "maxMp", "atk", "matk", "def", "unlocked"];
+const PLAYER_SAVE_FIELDS = ["name", "map", "x", "y", "dir", "lv", "exp", "nextExp", "gold", "weaponLv", "armorLv", "storyFlag", "quests", "vars", "focusQuest", "visited"];
+// 최대 HP·공격력 등은 레벨·스탯·장비로 계산하므로 저장하지 않는다 (recalcMember)
+const PARTY_SAVE_FIELDS = ["hp", "mp", "unlocked", "equip"];
 
 function slotLabel(id) { return id === "auto" ? "자동 저장" : `슬롯 ${id}`; }
 
@@ -30,7 +33,7 @@ function buildSaveData() {
     inventory: { ...player.inventory },
     party: party.map(m => {           // 배열 순서 = 파티 순서 (첫 번째 합류 멤버가 리더)
       const o = { id: m.id };
-      PARTY_SAVE_FIELDS.forEach(k => o[k] = m[k]);
+      PARTY_SAVE_FIELDS.forEach(k => o[k] = typeof m[k] === "object" ? { ...m[k] } : m[k]);
       return o;
     })
   };
@@ -59,7 +62,7 @@ function migrateSave(d) {
 
 // 손상되었거나 알 수 없는 버전의 세이브는 null (로컬·클라우드 공용)
 function validateSave(d) {
-  if (!d || (d.version !== 1 && d.version !== SAVE_VERSION) || !d.player || !Array.isArray(d.party)) return null;
+  if (!d || ![1, 2, SAVE_VERSION].includes(d.version) || !d.player || !Array.isArray(d.party)) return null;
   return d;
 }
 
@@ -76,8 +79,25 @@ function applySaveData(raw) {
   d.party.forEach(s => {
     const m = partyMember(s.id);
     if (!m) return;
-    PARTY_SAVE_FIELDS.forEach(k => { if (s[k] !== undefined) m[k] = s[k]; });
+    if (typeof s.hp === "number") m.hp = s.hp;
+    if (typeof s.mp === "number") m.mp = s.mp;
+    if (typeof s.unlocked === "boolean") m.unlocked = s.unlocked;
+    // 장비 (v3). 없는 아이템·맞지 않는 칸은 비운다. v1·v2 세이브는 캐릭터 기본 장비를 쓴다.
+    if (s.equip && typeof s.equip === "object") {
+      EQUIP_SLOTS.forEach(slot => {
+        const id = s.equip[slot] || "";
+        const it = GameData.items.items[id];
+        m.equip[slot] = id && it && it.type === slot ? id : "";
+      });
+    }
   });
+  // 레벨·장비·강화로 능력치를 다시 계산하고 현재 HP/MP 를 최대치 안으로 맞춘다
+  party.forEach(m => {
+    Object.assign(m, calcMemberStats(memberDef(m.id), player.lv, m.equip));
+    m.hp = Math.max(0, Math.min(m.hp, m.maxHp));
+    m.mp = Math.max(0, Math.min(m.mp, m.maxMp));
+  });
+  if (!Array.isArray(player.visited)) player.visited = [];
   // 파티 순서 복원 (세이브에 없는 멤버는 뒤로)
   const order = d.party.map(s => s.id);
   const rank = (id) => { const i = order.indexOf(id); return i < 0 ? 99 : i; };
@@ -152,6 +172,7 @@ let autoCloud = { timer: null, last: 0, pending: null };
 // 슬롯에 저장. opts.auto: 자동 저장(표시를 작게), opts.cloudNow: 클라우드 즉시 쓰기
 function saveToSlot(id, opts = {}) {
   if (!player) return false;
+  if (id !== "auto" && !cloudReady()) { showToast("🔒 수동 저장은 로그인한 뒤에 할 수 있습니다.", true); return false; }
   const data = buildSaveData();
   try {
     writeLocalSlot(id, data);
@@ -276,9 +297,59 @@ function onCloudAuthChanged(user) {
   if (cloudUser && !user && autoCloud.pending) cancelAutoCloud();
   cloudUser = user;
   cloudSlots = {};
+  playerId = "";
   updateAuthUI();
   refreshTitleContinue();
-  if (user) syncOnLogin();
+  if (user) { syncOnLogin(); ensurePlayerId(user); }
+}
+
+// ---------- 플레이어 ID ----------
+// 규칙: 영문 대문자 6자리 + "-" + 숫자 10자리 (예: QWERTY-0123456789).
+// 로그인 계정(uid)의 SHA-256 값에서 만든다 → 같은 계정이면 어느 기기에서든 같은 ID 가 나온다.
+// 처음 로그인할 때 Firestore players/{uid} 에 저장하고, 이후에는 저장된 값을 쓴다.
+const PLAYER_ID_RE = /^[A-Z]{6}-[0-9]{10}$/;
+let playerId = "";
+
+async function makePlayerId(uid) {
+  const bytes = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`wedge-player:${uid}`)));
+  let letters = "", digits = "";
+  for (let i = 0; i < 6; i++) letters += String.fromCharCode(65 + bytes[i] % 26);
+  for (let i = 6; i < 16; i++) digits += String(bytes[i] % 10);
+  return `${letters}-${digits}`;
+}
+
+async function ensurePlayerId(user) {
+  try {
+    const fallback = await makePlayerId(user.uid);
+    let prof = null;
+    try { prof = await window.cloud.loadProfile(); } catch (e) { console.warn("[플레이어 ID] 읽기 실패", e); }
+    const id = prof && PLAYER_ID_RE.test(prof.playerId || "") ? prof.playerId : fallback;
+    if (cloudUser !== user) return;
+    playerId = id;
+    updateAuthUI();
+    try { await window.cloud.saveProfile({ playerId: id, name: user.displayName || "", created: !prof }); }
+    catch (e) { console.warn("[플레이어 ID] 저장 실패 (firestore.rules 게시 필요?)", e); }
+  } catch (e) {
+    console.error("[플레이어 ID]", e);
+  }
+}
+
+async function copyPlayerId() {
+  if (!playerId) return;
+  let ok = false;
+  try { await navigator.clipboard.writeText(playerId); ok = true; } catch (e) {
+    const t = document.createElement("textarea");
+    t.value = playerId; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.appendChild(t); t.select();
+    try { ok = document.execCommand("copy"); } catch (e2) {}
+    t.remove();
+  }
+  showToast(ok ? `📋 플레이어 ID 복사: ${playerId}` : "복사하지 못했습니다. ID 를 직접 선택해 복사하세요.", !ok);
+}
+
+function playerIdHtml() {
+  if (!playerId) return cloudUser ? `<span class="muted small">플레이어 ID 확인 중…</span>` : "";
+  return `<span class="pid">🆔 <b class="pid-text">${playerId}</b></span><button class="item-btn" onclick="copyPlayerId()" title="복사">📋 복사</button>`;
 }
 
 // ---------- 불러오기 ----------
@@ -358,13 +429,14 @@ function renderSaveWindow(loading = false) {
     const info = pick ? (() => { const s = saveSummary(pick.data); return `<b>${escapeHtml(s.who)}</b> · ${escapeHtml(s.where)}<br><small>${s.when} · ${saveSourceLabel(pick.source)}</small>`; })()
       : `<span class="muted">비어 있음</span>`;
     let btn = "";
-    if (tab === "save") btn = id === "auto" ? `<span class="muted small">자동</span>` : `<button class="item-btn" onclick="saveSlotClick('${id}')">저장</button>`;
+    if (tab === "save") btn = id === "auto" ? `<span class="muted small">자동</span>`
+      : cloudReady() ? `<button class="item-btn" onclick="saveSlotClick('${id}')">저장</button>` : `<button class="item-btn" disabled title="로그인 필요">🔒 저장</button>`;
     else btn = `<button class="item-btn" onclick="loadSlot('${id}')" ${pick ? "" : "disabled"}>불러오기</button>`;
     return `<div class="slot-row${pick ? "" : " empty"}"><span class="slot-name">${id === "auto" ? "🔄 " : "💾 "}${slotLabel(id)}</span><div class="slot-info">${info}</div>${btn}</div>`;
   }).join("");
   const cloudLine = !window.cloud ? `<p class="muted small">클라우드를 사용할 수 없어 이 기기에만 저장됩니다.</p>`
     : cloudReady() ? `<p class="muted small">☁️ ${escapeHtml(cloudUser.displayName || cloudUser.email || "")} — 모든 슬롯이 클라우드에 저장되어 다른 기기에서도 불러올 수 있습니다.${loading ? " (클라우드 확인 중…)" : ""}</p>`
-    : `<p class="muted small">로그인하지 않아 <b>이 기기에만</b> 저장됩니다. Google 로그인하면 모든 저장이 클라우드에 올라갑니다. <button class="item-btn" onclick="toggleLogin()">🔑 로그인</button></p>`;
+    : `<p class="muted small">로그인하지 않아 <b>자동 저장만</b> 이 기기에 됩니다. 수동 저장(슬롯 1~5)은 Google 로그인한 뒤에 할 수 있습니다. <button class="item-btn" onclick="toggleLogin()">🔑 로그인</button></p>`;
   const help = tab === "save" ? `<p class="muted small" style="margin:0">자동 저장: 전투가 끝났을 때 · 다른 맵으로 이동했을 때 · NPC 대화가 끝났을 때</p>` : "";
   openWindow(inGame ? "💾 저장 · 불러오기" : "📂 불러오기", help + rows + cloudLine, inGame ? {
     kind: "save", tabs: [{ id: "save", label: "저장" }, { id: "load", label: "불러오기" }], active: tab,
@@ -374,6 +446,7 @@ function renderSaveWindow(loading = false) {
 
 async function saveSlotClick(id) {
   if (Modal.prev !== "WORLD") return;
+  if (!cloudReady()) { SFX.error(); showToast("🔒 수동 저장은 로그인한 뒤에 할 수 있습니다.", true); return; }
   const cur = slotSave(id);
   if (cur) {
     const s = saveSummary(cur.data);
@@ -397,13 +470,15 @@ function updateAuthUI() {
     return;
   }
   ovBtn.style.display = "inline-block";
+  const pidBox = document.getElementById("ov-pid");
   if (cloudUser) {
     ovBtn.textContent = "🔓 로그아웃";
     status.textContent = `☁️ ${cloudUser.displayName || cloudUser.email || "사용자"} 님 — 모든 저장이 클라우드에 기록됩니다.`;
   } else {
     ovBtn.textContent = "🔑 Google 로그인";
-    status.textContent = "로그인하면 모든 저장이 클라우드에 올라가 다른 기기에서도 이어할 수 있습니다.";
+    status.textContent = "로그인하면 수동 저장(슬롯 1~5)을 쓸 수 있고, 모든 저장이 클라우드에 올라가 다른 기기에서도 이어할 수 있습니다.";
   }
+  if (pidBox) pidBox.innerHTML = cloudUser ? playerIdHtml() : "";
   if (typeof rerenderSettingsIfOpen === "function") rerenderSettingsIfOpen();
   if (modalOpen("save")) renderSaveWindow();
 }

@@ -58,8 +58,10 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 @event 이벤트id 맵id:x,y 이름          ← 맵 이벤트. 내용 문법은 @scene 과 같음
 * sprite 캐릭터키 [when 조건]          ← 맵에 그릴 NPC (조건이 맞을 때만). NPC 칸은 지나갈 수 없다
 * tile 타일id [when 조건]              ← 그 칸의 오브젝트를 바꿔 그림 (예: 열린 상자)
-* trigger talk | touch                 ← talk: 마주 보고 Space / touch: 밟으면 실행
+* trigger talk | touch | enter         ← talk: 마주 보고 Space / touch: 밟으면 실행
+                                         enter: 출구를 통해 이 맵에 들어올 때 실행 (좌표 무관, 맵마다 조건이 맞는 첫 이벤트 하나)
                                          (기본값: sprite 가 있으면 talk, 없으면 touch)
+* when 조건                            ← 조건이 맞을 때만 이벤트가 동작 (말 걸기·밟기·진입 모두). 안 맞으면 NPC 도 보이지 않음
 * face down|up|left|right              ← NPC 기본 방향 (말을 걸면 주인공 쪽을 본다)
 
 @quest 퀘스트id main|side 제목          ← 퀘스트 정의. 다음 줄부터 설명 (HUD·퀘스트 메뉴에 표시)
@@ -72,6 +74,14 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 - 명령은 위에서 아래로 순서대로 실행된다. 대사 앞에 둔 명령은 대화창이 뜨기 전에 실행된다.
 - 계산대(`counter` 타일) 너머의 NPC 에게도 말을 걸 수 있다.
 - 필수 장면: `intro` (새 게임 시작), `party_wiped` (전멸 후 — 부활 위치 이동·회복은 게임이 먼저 처리)
+- 화자 이름은 `?` 로 시작하면 안 된다 (`? 조건 -> 장면` 으로 읽힌다). 모르는 사람은 `누군가의 목소리:` 처럼 쓴다.
+- 맵 진입 이벤트 예 (한 번만 실행):
+  ```
+  @event hazel_tobi_arrive hazel:1,1 토비의 귀가
+  * trigger enter
+  * when joined tobi and !quest main_village done
+  -> hazel_tobi_home
+  ```
 - 맵 출구(`data/maps/*.json` 의 `warps`)에 `fail` 로 지정한 장면도 시나리오에 있어야 한다.
 
 ### 조건
@@ -91,12 +101,12 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 |---|---|
 | `> flag N` | 스토리 플래그 설정 |
 | `> set 변수 N` | 변수 설정 (상자 열림·일회성 이벤트 등) |
-| `> join ID` / `> leave ID` | 파티 합류 / 이탈 (`hero`, `ria`, `garen`; 주인공은 이탈 불가) |
+| `> join ID` / `> leave ID` | 파티 합류 / 이탈 (`hero`, `tobi`, `ria`, `garen`; 주인공은 이탈 불가) |
 | `> quest start ID` / `> quest done ID` | 퀘스트 시작 / 완료 (알림 표시) |
 | `> heal` | 파티 전원 HP·MP 완전 회복 |
 | `> sfx ID` / `> bgm ID` | 효과음 / 배경음 (`data/audio.json` 의 id — 관리자 '리소스' 탭) |
 | `> save` | 자동 저장 (로그인 시 클라우드에도) |
-| `> weapon +N` / `> armor +N` | 파티 무기·방어구 N단계 무료 강화 |
+| `> weapon +N` / `> armor +N` | 파티 무기·방어구 N단계 무료 강화 (대장간 강화와 같음. 캐릭터별 장비와는 별개) |
 | `> gold ±N` / `> exp +N` | 골드 증감 (0 미만 불가) / 경험치 (레벨업 처리) |
 | `> item ID ±N` | 아이템 증감 (`data/items.json` 의 id) |
 | `> move X,Y [방향]` | 같은 맵 안에서 위치 이동 |

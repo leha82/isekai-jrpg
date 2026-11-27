@@ -9,10 +9,12 @@ const rnd = (n) => Math.floor(Math.random() * (n + 1));
 const aliveEnemies = () => B.enemies.filter(e => e.hp > 0);
 const aliveAllies = () => activeParty().filter(m => m.hp > 0);
 
+// 몬스터도 5스탯을 가진다 (data/monsters.json 의 base + stats → calcMonsterStats)
 function makeEnemy(id, i) {
   const d = GameData.monsters[id];
-  return { uid: `${id}_${i}`, id, name: d.name, sprite: d.sprite, hp: d.hp, maxHp: d.hp, atk: d.atk, def: d.def || 0,
-           exp: d.exp, gold: d.gold, actions: d.actions || [{ type: "attack", name: "공격", weight: 1 }], drops: d.drops || [] };
+  const st = calcMonsterStats(d);
+  return Object.assign(st, { uid: `${id}_${i}`, id, name: d.name, sprite: d.sprite, hp: st.maxHp,
+           exp: d.exp, gold: d.gold, actions: d.actions || [{ type: "attack", name: "공격", weight: 1 }], drops: d.drops || [] });
 }
 
 async function startBattle(enemyIds, opts = {}) {
@@ -109,7 +111,7 @@ function allyTurn(ally) {
     const mainMenu = () => {
       const skills = skillsOf(ally);
       const btns = skills.map(s => ({
-        label: `${s.icon || ""} ${s.name}${s.mp ? ` <small>MP${s.mp}</small>` : ""}`,
+        label: `${iconTag(s.icon)}${s.name}${s.mp ? ` <small>MP${s.mp}</small>` : ""}`,
         disabled: ally.mp < s.mp,
         onClick: () => chooseTarget(s, (target) => done({ type: "skill", skill: s, target }), mainMenu)
       }));
@@ -121,7 +123,7 @@ function allyTurn(ally) {
       const items = Object.entries(player.inventory).filter(([id, n]) => n > 0 && ["heal_hp", "heal_mp"].includes((GameData.items.items[id] || {}).type));
       const btns = items.map(([id, n]) => {
         const it = GameData.items.items[id];
-        return { label: `${it.icon || ""} ${it.name} ×${n}`, onClick: () => pickAlly(`${it.name} 사용 대상`, (t) => done({ type: "item", item: id, target: t }), itemMenu) };
+        return { label: `${iconTag(it.icon)}${it.name} ×${n}`, onClick: () => pickAlly(`${it.name} 사용 대상`, (t) => done({ type: "item", item: id, target: t }), itemMenu) };
       });
       if (!btns.length) btns.push({ label: "사용할 아이템 없음", disabled: true, onClick: () => {} });
       btns.push({ label: "↩ 뒤로", cls: "back", onClick: mainMenu });
@@ -157,7 +159,7 @@ async function performAction(ally, action) {
     battleMsg(`${memberName(ally)} 일행은 도망쳤다…`);
     if (Math.random() < GameData.battle.fleeChance) {
       SFX.warp(0.6);
-      for (const a of BV.actors.filter(a => a.kind === "ally")) { a.walk = true; bvMove(a, 700, a.y, 400); }
+      for (const a of BV.actors.filter(a => a.kind === "ally")) { a.walk = true; bvMove(a, -80, a.y, 400); }
       await bvWait(500);
       return endBattle("flee");
     }
@@ -184,23 +186,33 @@ async function performAction(ally, action) {
   battleMsg(`${memberName(ally)}의 ${s.name}!`);
   renderBattleParty(ally.id);
 
-  if (s.type === "physical") {
+  if (s.type === "physical" && s.target === "all_enemies") {
+    // 적 전체 물리 (돌멩이 세례 등): 제자리에서 적마다 투사체
+    const targets = aliveEnemies();
+    actor.walk = true; await bvMove(actor, actor.homeX - 16, actor.homeY, 120); actor.walk = false;
+    playSFX(s.sfx || "hit", 0.7);
+    await Promise.all(targets.map((t, k) => (FX[s.fx] || FX.stone)(actor, bvActor(t), k * 70)));
+    targets.forEach(t => hitEnemy(ally, t, s));
+    await bvWait(380);
+    actor.walk = true; await bvMove(actor, actor.homeX, actor.homeY, 140); actor.walk = false;
+  } else if (s.type === "physical") {
     const target = action.target && action.target.hp > 0 ? action.target : aliveEnemies()[0];
     const ta = bvActor(target);
-    if (s.fx === "arrow") {
+    if (s.fx === "arrow" || s.fx === "stone") {
+      // 원거리: 반걸음 물러났다가 쏜다
       actor.walk = true; await bvMove(actor, actor.homeX - 20, actor.homeY, 140); actor.walk = false;
-      SFX.slash(0.7); await FX.arrow(actor, ta);
+      playSFX(s.fx === "arrow" ? "slash" : (s.sfx || "hit"), 0.7); await FX[s.fx](actor, ta);
     } else {
+      // 근접: 적의 왼쪽 앞까지 달려가 벤다
       actor.walk = true;
-      await bvMove(actor, ta.x + 40, ta.y + 4, 220);
+      await bvMove(actor, ta.x - 76, ta.y, 220);
       actor.walk = false;
       playSFX(s.sfx || "slash");
       FX.slash(ta, s.fx === "bigslash");
       if (s.fx === "bigslash") { bvFlash("#fff7c2", 220, .5); bvShake(8); }
     }
     await bvWait(140);
-    const { dmg, crit } = physicalDamage(ally, target, s);
-    damageEnemy(target, dmg, crit);
+    hitEnemy(ally, target, s);
     await bvWait(260);
     actor.walk = true; await bvMove(actor, actor.homeX, actor.homeY, 200); actor.walk = false;
   } else if (s.type === "magic") {
@@ -231,24 +243,38 @@ async function performAction(ally, action) {
 }
 
 // ---------- 공식 ----------
+// 치명타율 = 캐릭터 치명타율(DEX·AGI) + 스킬 보너스(crit). 회피: 물리 공격은 대상의 회피율(AGI·DEX)로 빗나갈 수 있다.
 function physicalDamage(ally, enemy, s) {
   const cfg = GameData.battle;
+  if (Math.random() < (enemy.evade || 0)) return { dmg: 0, crit: false, miss: true };
   let raw = ally.atk * (s.power || 1) + rnd(s.variance || 0);
-  const crit = Math.random() < (s.crit ?? cfg.critChance);
+  const crit = Math.random() < (ally.crit || 0) + (s.crit || 0);
   if (crit) raw *= cfg.critMultiplier;
   return { dmg: Math.max(cfg.minDamage, Math.floor(raw - enemy.def)), crit };
+}
+function hitEnemy(ally, target, s) {
+  const r = physicalDamage(ally, target, s);
+  if (r.miss) { bvText(bvActor(target), "MISS", "#cbd5e1"); SFX.cancel(0.5); return; }
+  damageEnemy(target, r.dmg, r.crit);
 }
 function magicDamage(ally, enemy, s) {
   const cfg = GameData.battle;
   const raw = ally.matk * (s.power || 1) + rnd(s.variance || 0);
   return { dmg: Math.max(cfg.minDamage, Math.floor(raw - enemy.def * 0.5)), crit: false };
 }
-function enemyDamage(enemy, target, power = 1) {
+// 적 → 아군. magic: 마법형 특수기(암흑·냉기)는 마력(INT)으로 계산하고 피할 수 없다. 일반 공격은 회피·치명타가 있다.
+function enemyDamage(enemy, target, power = 1, opts = {}) {
   const cfg = GameData.battle;
-  let d = Math.max(cfg.enemyMinDamage, Math.floor(enemy.atk * power - target.def * cfg.defenseFactor + rnd(3)));
+  if (opts.evadable && Math.random() < (target.evade || 0)) return { dmg: 0, miss: true };
+  const base = opts.magic ? enemy.matk : enemy.atk;
+  let raw = base * power - target.def * cfg.defenseFactor + rnd(3);
+  const crit = !!opts.evadable && Math.random() < (enemy.crit || 0);
+  if (crit) raw *= cfg.critMultiplier;
+  let d = Math.max(cfg.enemyMinDamage, Math.floor(raw));
   if (B.guard) d = Math.max(1, Math.floor(d * cfg.guardReduction));
-  return d;
+  return { dmg: d, crit };
 }
+const MAGIC_FX = ["dark", "frost"];
 function healHp(m, n) { const before = m.hp; m.hp = Math.min(m.maxHp, m.hp + n); return m.hp - before; }
 function healMp(m, n) { const before = m.mp; m.mp = Math.min(m.maxMp, m.mp + n); return m.mp - before; }
 function lowestHpAlly() { return aliveAllies().sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0]; }
@@ -274,20 +300,23 @@ async function enemyTurn(e) {
   battleMsg(`${e.name}의 ${act.name || "공격"}!`);
   const allies = aliveAllies();
   if (!allies.length) return;
+  const magic = act.type === "special" && MAGIC_FX.includes(act.fx);
   if (act.type === "special" && act.target === "all") {
-    await bvMove(ea, ea.homeX + 16, ea.homeY, 160);
+    await bvMove(ea, ea.homeX - 16, ea.homeY, 160);
     const fx = FX[act.fx] || FX.dark;
     SFX.fire(0.8);
     await fx(allies.map(bvActor));
-    allies.forEach(t => hurtAlly(t, enemyDamage(e, t, act.power || 1)));
+    allies.forEach(t => hurtAlly(t, enemyDamage(e, t, act.power || 1, { magic })));
     await bvMove(ea, ea.homeX, ea.homeY, 160);
   } else {
     const t = allies[Math.floor(Math.random() * allies.length)];
     const ta = bvActor(t);
-    await bvMove(ea, ta.x - 50, ta.y, 230);
+    // 아군의 오른쪽 앞까지 다가온다
+    await bvMove(ea, ta.x + 110, ta.y, 230);
+    const r = enemyDamage(e, t, act.power || 1, { magic, evadable: act.type !== "special" });
     if (act.type === "special") { const fx = FX[act.fx] || FX.dark; await fx([ta]); }
-    else { SFX.hit(); FX.impact(ta); }
-    hurtAlly(t, enemyDamage(e, t, act.power || 1));
+    else if (!r.miss) { SFX.hit(); FX.impact(ta); }
+    hurtAlly(t, r);
     await bvWait(200);
     await bvMove(ea, ea.homeX, ea.homeY, 220);
   }
@@ -295,12 +324,13 @@ async function enemyTurn(e) {
   await bvWait(250);
 }
 
-function hurtAlly(m, dmg) {
-  m.hp = Math.max(0, m.hp - dmg);
+function hurtAlly(m, r) {
   const a = bvActor(m);
+  if (r.miss) { bvText(a, "MISS", "#cbd5e1"); SFX.cancel(0.5); return; }
+  m.hp = Math.max(0, m.hp - r.dmg);
   bvHit(a);
-  bvShake(5);
-  bvText(a, dmg, "#fca5a5");
+  bvShake(r.crit ? 9 : 5);
+  bvText(a, r.crit ? `${r.dmg}!` : r.dmg, r.crit ? "#fb923c" : "#fca5a5", r.crit);
 }
 
 // ---------- 종료 ----------
