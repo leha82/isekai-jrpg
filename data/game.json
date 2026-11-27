@@ -1,0 +1,60 @@
+{
+ "title": "쐐기의 이방인",
+ "subtitle": "베일하르트의 균열",
+ "defaultHeroName": "유진",
+ "heroNameMaxLength": 8,
+ "start": {
+  "map": "meadow",
+  "x": 8,
+  "y": 22,
+  "dir": "down"
+ },
+ "respawn": {
+  "map": "hazel",
+  "x": 13,
+  "y": 19,
+  "dir": "up"
+ },
+ "startGold": 60,
+ "startItems": {
+  "potion": 2,
+  "ether": 1
+ },
+ "maps": [
+  "meadow",
+  "hazel",
+  "hazel_elder",
+  "forest_road",
+  "elbrea",
+  "lucen",
+  "lucen_castle",
+  "grom_pass",
+  "frost_plain",
+  "noct_gate",
+  "noct_keep",
+  "orvel_throne"
+ ],
+ "views": [
+  {
+   "cols": 10,
+   "label": "아주 크게"
+  },
+  {
+   "cols": 13,
+   "label": "크게"
+  },
+  {
+   "cols": 16,
+   "label": "보통"
+  },
+  {
+   "cols": 20,
+   "label": "넓게"
+  },
+  {
+   "cols": 26,
+   "label": "아주 넓게"
+  }
+ ],
+ "defaultView": 16
+}

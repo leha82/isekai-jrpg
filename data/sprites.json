@@ -1,0 +1,184 @@
+{
+ "characters": {
+  "image": "assets/img/characters.png",
+  "size": 16,
+  "frames": [
+   "down",
+   "left",
+   "right",
+   "up"
+  ],
+  "list": {
+   "hero": {
+    "label": "주인공",
+    "row": 0
+   },
+   "ria": {
+    "label": "리아",
+    "row": 1
+   },
+   "garen": {
+    "label": "가렌",
+    "row": 2
+   },
+   "villager_m": {
+    "label": "마을 남자",
+    "row": 3
+   },
+   "villager_f": {
+    "label": "마을 여자",
+    "row": 4
+   },
+   "elder": {
+    "label": "촌장",
+    "row": 5
+   },
+   "merchant": {
+    "label": "상인",
+    "row": 6
+   },
+   "guard": {
+    "label": "경비병",
+    "row": 7
+   },
+   "king": {
+    "label": "국왕",
+    "row": 8
+   },
+   "child": {
+    "label": "아이",
+    "row": 9
+   },
+   "dwarf": {
+    "label": "드워프",
+    "row": 10
+   },
+   "scout": {
+    "label": "북부 정찰병",
+    "row": 11
+   },
+   "sage": {
+    "label": "엘프 현자",
+    "row": 12
+   },
+   "orvel": {
+    "label": "오르벨",
+    "row": 13
+   },
+   "captain": {
+    "label": "흑기사 대장",
+    "row": 14
+   },
+   "nun": {
+    "label": "수녀",
+    "row": 15
+   }
+  }
+ },
+ "monsters": {
+  "image": "assets/img/monsters.png",
+  "list": {
+   "slime": {
+    "label": "슬라임",
+    "x": 8,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "slime_poison": {
+    "label": "독 슬라임",
+    "x": 56,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "slime_ice": {
+    "label": "얼음 슬라임",
+    "x": 104,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "bat": {
+    "label": "박쥐",
+    "x": 152,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "goblin": {
+    "label": "고블린",
+    "x": 200,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "wolf": {
+    "label": "늑대",
+    "x": 248,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "snow_wolf": {
+    "label": "설원 늑대",
+    "x": 296,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "golem": {
+    "label": "바위 골렘",
+    "x": 344,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "wisp": {
+    "label": "서리 정령",
+    "x": 392,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "dark_knight": {
+    "label": "흑기사",
+    "x": 440,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "wraith": {
+    "label": "망령",
+    "x": 488,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "captain": {
+    "label": "흑기사 대장",
+    "x": 536,
+    "y": 16,
+    "w": 32,
+    "h": 32
+   },
+   "orvel": {
+    "label": "오르벨",
+    "x": 576,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   }
+  }
+ },
+ "battleBackgrounds": {
+  "meadow": "assets/img/bg/meadow.png",
+  "forest": "assets/img/bg/forest.png",
+  "town": "assets/img/bg/town.png",
+  "mountain": "assets/img/bg/mountain.png",
+  "snow": "assets/img/bg/snow.png",
+  "castle": "assets/img/bg/castle.png",
+  "dungeon": "assets/img/bg/dungeon.png",
+  "throne": "assets/img/bg/throne.png"
+ }
+}

@@ -1,0 +1,252 @@
+{
+ "files": [
+  {
+   "path": "assets/bgm/battle.mp3",
+   "size": 307513
+  },
+  {
+   "path": "assets/bgm/boss.mp3",
+   "size": 288392
+  },
+  {
+   "path": "assets/bgm/castle.mp3",
+   "size": 443559
+  },
+  {
+   "path": "assets/bgm/dungeon.mp3",
+   "size": 501238
+  },
+  {
+   "path": "assets/bgm/ending.mp3",
+   "size": 640418
+  },
+  {
+   "path": "assets/bgm/field.mp3",
+   "size": 384313
+  },
+  {
+   "path": "assets/bgm/forest.mp3",
+   "size": 524121
+  },
+  {
+   "path": "assets/bgm/mountain.mp3",
+   "size": 480549
+  },
+  {
+   "path": "assets/bgm/snow.mp3",
+   "size": 606877
+  },
+  {
+   "path": "assets/bgm/title.mp3",
+   "size": 548885
+  },
+  {
+   "path": "assets/bgm/town.mp3",
+   "size": 461113
+  },
+  {
+   "path": "assets/img/bg/castle.png",
+   "size": 983
+  },
+  {
+   "path": "assets/img/bg/dungeon.png",
+   "size": 968
+  },
+  {
+   "path": "assets/img/bg/forest.png",
+   "size": 1349
+  },
+  {
+   "path": "assets/img/bg/meadow.png",
+   "size": 747
+  },
+  {
+   "path": "assets/img/bg/mountain.png",
+   "size": 996
+  },
+  {
+   "path": "assets/img/bg/snow.png",
+   "size": 961
+  },
+  {
+   "path": "assets/img/bg/throne.png",
+   "size": 986
+  },
+  {
+   "path": "assets/img/bg/town.png",
+   "size": 769
+  },
+  {
+   "path": "assets/img/characters.png",
+   "size": 10012
+  },
+  {
+   "path": "assets/img/icons/bag.svg",
+   "size": 270
+  },
+  {
+   "path": "assets/img/icons/coin.svg",
+   "size": 286
+  },
+  {
+   "path": "assets/img/icons/heart.svg",
+   "size": 263
+  },
+  {
+   "path": "assets/img/icons/load.svg",
+   "size": 258
+  },
+  {
+   "path": "assets/img/icons/login.svg",
+   "size": 242
+  },
+  {
+   "path": "assets/img/icons/map.svg",
+   "size": 256
+  },
+  {
+   "path": "assets/img/icons/mute.svg",
+   "size": 248
+  },
+  {
+   "path": "assets/img/icons/party.svg",
+   "size": 331
+  },
+  {
+   "path": "assets/img/icons/quest.svg",
+   "size": 269
+  },
+  {
+   "path": "assets/img/icons/save.svg",
+   "size": 276
+  },
+  {
+   "path": "assets/img/icons/settings.svg",
+   "size": 314
+  },
+  {
+   "path": "assets/img/icons/skill.svg",
+   "size": 263
+  },
+  {
+   "path": "assets/img/icons/sound.svg",
+   "size": 276
+  },
+  {
+   "path": "assets/img/icons/sword.svg",
+   "size": 264
+  },
+  {
+   "path": "assets/img/monsters.png",
+   "size": 3600
+  },
+  {
+   "path": "assets/img/portraits/elder.svg",
+   "size": 2210
+  },
+  {
+   "path": "assets/img/portraits/garen.svg",
+   "size": 2592
+  },
+  {
+   "path": "assets/img/portraits/hero.svg",
+   "size": 2302
+  },
+  {
+   "path": "assets/img/portraits/king.svg",
+   "size": 2393
+  },
+  {
+   "path": "assets/img/portraits/orvel.svg",
+   "size": 2018
+  },
+  {
+   "path": "assets/img/portraits/ria.svg",
+   "size": 2630
+  },
+  {
+   "path": "assets/img/tiles.png",
+   "size": 4565
+  },
+  {
+   "path": "assets/sfx/cancel.mp3",
+   "size": 9091
+  },
+  {
+   "path": "assets/sfx/chest.mp3",
+   "size": 11285
+  },
+  {
+   "path": "assets/sfx/coin.mp3",
+   "size": 9404
+  },
+  {
+   "path": "assets/sfx/confirm.mp3",
+   "size": 9091
+  },
+  {
+   "path": "assets/sfx/cursor.mp3",
+   "size": 8150
+  },
+  {
+   "path": "assets/sfx/door.mp3",
+   "size": 6269
+  },
+  {
+   "path": "assets/sfx/encounter.mp3",
+   "size": 7210
+  },
+  {
+   "path": "assets/sfx/enemy_die.mp3",
+   "size": 6583
+  },
+  {
+   "path": "assets/sfx/error.mp3",
+   "size": 3448
+  },
+  {
+   "path": "assets/sfx/fanfare.mp3",
+   "size": 38870
+  },
+  {
+   "path": "assets/sfx/fire.mp3",
+   "size": 8777
+  },
+  {
+   "path": "assets/sfx/guard.mp3",
+   "size": 19749
+  },
+  {
+   "path": "assets/sfx/heal.mp3",
+   "size": 11912
+  },
+  {
+   "path": "assets/sfx/hit.mp3",
+   "size": 2508
+  },
+  {
+   "path": "assets/sfx/item.mp3",
+   "size": 9404
+  },
+  {
+   "path": "assets/sfx/levelup.mp3",
+   "size": 13479
+  },
+  {
+   "path": "assets/sfx/slash.mp3",
+   "size": 3448
+  },
+  {
+   "path": "assets/sfx/step.mp3",
+   "size": 940
+  },
+  {
+   "path": "assets/sfx/warp.mp3",
+   "size": 7523
+  },
+  {
+   "path": "assets/sfx/wind.mp3",
+   "size": 11285
+  }
+ ]
+}

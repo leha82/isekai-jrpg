@@ -1,0 +1,24 @@
+{
+ "encounterRate": 1.0,
+ "encounterGraceSteps": 4,
+ "fleeChance": 0.7,
+ "defenseFactor": 0.5,
+ "minDamage": 1,
+ "enemyMinDamage": 2,
+ "critChance": 0.08,
+ "critMultiplier": 1.6,
+ "guardReduction": 0.5,
+ "levelCurve": {
+  "base": 20,
+  "growth": 1.45
+ },
+ "upgrade": {
+  "weaponCostPerLevel": 45,
+  "armorCostPerLevel": 40,
+  "weaponAtk": 4,
+  "weaponMatk": 4,
+  "armorDef": 3,
+  "armorHp": 10
+ },
+ "animationSpeed": 1.0
+}

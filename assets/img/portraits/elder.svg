@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+<defs>
+ <radialGradient id="bg" cx="50%" cy="35%" r="75%"><stop offset="0" stop-color="#e8dcff"/><stop offset="1" stop-color="#6a4c93"/></radialGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0caa8"/><stop offset="1" stop-color="#c89a78"/></linearGradient>
+ <linearGradient id="hair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e8e8ee"/><stop offset="1" stop-color="#a8a8b4"/></linearGradient>
+</defs>
+<rect width="96" height="96" fill="url(#bg)"/>
+<path d="M14 96 Q16 72 34 68 L48 76 L62 68 Q80 72 82 96 Z" fill="#6a4c93" stroke="#432e62" stroke-width="1.5"/>
+<path d="M40 60 L40 70 Q48 74 56 70 L56 60 Z" fill="#c89a78"/>
+<ellipse cx="28" cy="46" rx="4" ry="6" fill="#c89a78"/><ellipse cx="68" cy="46" rx="4" ry="6" fill="#c89a78"/>
+<path d="M28 36 Q28 62 48 66 Q68 62 68 36 Q68 22 48 22 Q28 22 28 36 Z" fill="url(#skin)" stroke="#c89a78" stroke-width="1"/>
+<ellipse cx="36" cy="52" rx="4" ry="2" fill="#ff9a9a" opacity=".35"/><ellipse cx="60" cy="52" rx="4" ry="2" fill="#ff9a9a" opacity=".35"/>
+<ellipse cx="39" cy="45" rx="4.2" ry="3.6" fill="#fff"/><ellipse cx="39" cy="45.6" rx="3.2" ry="2.8" fill="#5a4a3a"/><ellipse cx="39" cy="46.2" rx="1.6" ry="2.2" fill="#14121c"/><circle cx="37.6" cy="43.4" r="1.3" fill="#fff"/>
+<ellipse cx="57" cy="45" rx="4.2" ry="3.6" fill="#fff"/><ellipse cx="57" cy="45.6" rx="3.2" ry="2.8" fill="#5a4a3a"/><ellipse cx="57" cy="46.2" rx="1.6" ry="2.2" fill="#14121c"/><circle cx="55.6" cy="43.4" r="1.3" fill="#fff"/>
+<path d="M34 37 Q39 35 44 37" stroke="#a8a8b4" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M52 37 Q57 35 62 37" stroke="#a8a8b4" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M48 50 L47 54 L49 54" stroke="#c89a78" stroke-width="1.2" fill="none"/>
+
+<path d="M28 36 Q30 22 48 22 Q66 22 68 36 Q60 28 48 30 Q36 28 28 36 Z" fill="url(#hair)" stroke="#a8a8b4" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M32 54 Q48 90 64 54 Q60 62 48 64 Q36 62 32 54 Z" fill="#f4f4f8" stroke="#b8b8c4" stroke-width="1"/>
+</svg>

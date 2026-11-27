@@ -3,14 +3,14 @@
 // Firebase SDK는 js/firebase/game-cloud.js (module) 가 window.cloud 로 노출한다.
 // SDK를 불러오지 못해도 로컬 세이브만으로 게임은 정상 동작한다.
 // ==========================================
-const SAVE_KEY = "arcadia_isekai_jrpg_save_v1";
-const SAVE_VERSION = 1;
-const PLAYER_SAVE_FIELDS = ["x", "y", "lv", "exp", "nextExp", "gold", "weaponLv", "armorLv", "storyFlag"];
+const SAVE_KEY = "arcadia_isekai_jrpg_save_v1";   // 키 이름은 호환을 위해 유지 (내용은 version 으로 구분)
+const SAVE_VERSION = 2;
+const PLAYER_SAVE_FIELDS = ["name", "map", "x", "y", "dir", "lv", "exp", "nextExp", "gold", "weaponLv", "armorLv", "storyFlag", "quests", "vars"];
 const PARTY_SAVE_FIELDS = ["hp", "maxHp", "mp", "maxMp", "atk", "matk", "def", "unlocked"];
 
 function buildSaveData() {
   const p = {};
-  PLAYER_SAVE_FIELDS.forEach(k => p[k] = player[k]);
+  PLAYER_SAVE_FIELDS.forEach(k => { p[k] = (typeof player[k] === "object" && player[k]) ? JSON.parse(JSON.stringify(player[k])) : player[k]; });
   return {
     version: SAVE_VERSION,
     savedAt: new Date().toISOString(),
@@ -24,9 +24,30 @@ function buildSaveData() {
   };
 }
 
-// 손상되었거나 버전이 다른 세이브는 null을 반환한다. (로컬·클라우드 공용)
+// v1(아르카디아 연대기 시절) 세이브를 v2 로 변환한다.
+function migrateSave(d) {
+  if (d.version === 1) {
+    const g = GameData.game;
+    const flag = Math.min(2, d.player.storyFlag || 0);
+    const quests = {};
+    if (flag === 0) quests.main_forest = "active";
+    if (flag >= 1) { quests.main_forest = "done"; quests.main_capital = flag >= 2 ? "done" : "active"; }
+    if (flag >= 2) quests.main_north = "active";
+    const idMap = { elf: "ria", knight: "garen" };
+    d = {
+      version: 2, savedAt: d.savedAt,
+      player: Object.assign({}, d.player, { name: g.defaultHeroName, map: flag >= 1 ? "lucen" : g.start.map,
+        x: flag >= 1 ? 16 : g.start.x, y: flag >= 1 ? 25 : g.start.y, dir: "down", storyFlag: flag, quests, vars: {} }),
+      inventory: d.inventory || {},
+      party: d.party.map(m => Object.assign({}, m, { id: idMap[m.id] || m.id }))
+    };
+  }
+  return d;
+}
+
+// 손상되었거나 알 수 없는 버전의 세이브는 null을 반환한다. (로컬·클라우드 공용)
 function validateSave(d) {
-  if (!d || d.version !== SAVE_VERSION || !d.player || !Array.isArray(d.party)) return null;
+  if (!d || (d.version !== 1 && d.version !== SAVE_VERSION) || !d.player || !Array.isArray(d.party)) return null;
   return d;
 }
 
@@ -59,21 +80,28 @@ function saveGame(isAuto = false, toCloud = false) {
   return ok;
 }
 
-function applySaveData(d) {
-  PLAYER_SAVE_FIELDS.forEach(k => { if (typeof d.player[k] === "number") player[k] = d.player[k]; });
-  if (d.inventory) {
-    Object.keys(player.inventory).forEach(k => {
-      if (typeof d.inventory[k] === "number") player.inventory[k] = d.inventory[k];
-    });
-  }
+// 새 게임 상태를 만든 뒤 세이브 값을 덮어쓴다.
+function applySaveData(raw) {
+  const d = migrateSave(raw);
+  newGameState(d.player.name);
+  PLAYER_SAVE_FIELDS.forEach(k => {
+    const v = d.player[k];
+    if (v === undefined || v === null) return;
+    if (typeof v === typeof player[k]) player[k] = typeof v === "object" ? JSON.parse(JSON.stringify(v)) : v;
+  });
+  if (d.inventory) Object.keys(d.inventory).forEach(k => { if (typeof d.inventory[k] === "number") player.inventory[k] = d.inventory[k]; });
   d.party.forEach(s => {
     const m = partyMember(s.id);
     if (!m) return;
     PARTY_SAVE_FIELDS.forEach(k => { if (s[k] !== undefined) m[k] = s[k]; });
   });
   party[0].unlocked = true;
-  // 저장 위치가 맵 밖이거나 통행 불가 타일이면 시작 지점으로 보정
-  if (isBlockedTile(player.x, player.y)) { player.x = START_POS.x; player.y = START_POS.y; }
+  // 없는 맵이거나 지나갈 수 없는 칸이면 시작 지점으로 보정
+  const m = GameData.maps[player.map];
+  if (!m || !tileWalkable(m, player.x, player.y)) {
+    const st = GameData.game.start;
+    Object.assign(player, { map: st.map, x: st.x, y: st.y, dir: st.dir });
+  }
 }
 
 function manualSave() {
@@ -97,8 +125,8 @@ async function manualLoad() {
   if (!confirm(`Lv.${pick.data.player.lv} 저장 데이터를 불러올까요? (${saveSourceLabel(pick.source)})\n현재 진행 상황은 사라집니다.`)) return;
   if (gameState !== "WORLD") return;
   applyPickedSave(pick);
-  updateHUD();
-  renderWorld();
+  AudioSys.currentId = null;
+  enterMap(player.map, player.x, player.y, player.dir);
   SFX.coin();
   showToast(`📂 불러오기 완료! (Lv.${player.lv}, ${saveSourceLabel(pick.source)})`);
 }
@@ -120,7 +148,7 @@ function refreshTitleContinue() {
   if (gameState === "ENDING") { btn.style.display = "none"; return; }
   const pick = latestSave();
   if (pick) {
-    btn.innerText = `📂 이어하기 (Lv.${pick.data.player.lv} · ${saveSourceLabel(pick.source)})`;
+    btn.innerText = `📂 이어하기 (${pick.data.player.name ? pick.data.player.name + " · " : ""}Lv.${pick.data.player.lv} · ${saveSourceLabel(pick.source)})`;
     btn.style.display = "inline-block";
   } else {
     btn.style.display = "none";
@@ -198,37 +226,26 @@ function onCloudAuthChanged(user) {
   if (user) syncOnLogin();
 }
 
+// 타이틀 화면의 로그인 버튼·상태 문구 (게임 중에는 설정 메뉴에서 로그인)
 function updateAuthUI() {
-  const btn = document.getElementById("auth-btn");
   const ovBtn = document.getElementById("ov-login-btn");
   const status = document.getElementById("ov-auth-status");
-  if (!window.cloud) {
-    btn.innerText = "☁️ 사용 불가";
-    btn.disabled = true;
+  if (!window.cloud || location.protocol === "file:") {
     ovBtn.style.display = "none";
-    status.innerText = "클라우드 세이브에 연결할 수 없습니다. 이 기기에만 저장됩니다.";
+    status.innerText = location.protocol === "file:"
+      ? "파일로 직접 열면 로그인할 수 없습니다. 배포 사이트나 localhost 에서 접속하세요."
+      : "클라우드 세이브에 연결할 수 없습니다. 이 기기에만 저장됩니다.";
     return;
   }
-  if (location.protocol === "file:") {
-    // Firebase 로그인은 http(s) 페이지에서만 동작한다.
-    btn.innerText = "☁️ 사용 불가";
-    btn.disabled = true;
-    ovBtn.style.display = "none";
-    status.innerText = "파일로 직접 열면 로그인할 수 없습니다. 로컬 서버(VS Code F5 → localhost)나 배포 사이트에서 접속하세요.";
-    return;
-  }
-  btn.disabled = false;
   ovBtn.style.display = "inline-block";
   if (cloudUser) {
-    const name = cloudUser.displayName || cloudUser.email || "사용자";
-    btn.innerText = "🔓 로그아웃";
     ovBtn.innerText = "🔓 로그아웃";
-    status.innerText = `☁️ ${name} 님으로 로그인됨 — 클라우드에도 저장됩니다.`;
+    status.innerText = `☁️ ${cloudUser.displayName || cloudUser.email || "사용자"} 님으로 로그인됨 — 클라우드에도 저장됩니다.`;
   } else {
-    btn.innerText = "🔑 로그인";
     ovBtn.innerText = "🔑 Google 로그인";
     status.innerText = "로그인하면 다른 기기에서도 이어할 수 있습니다. (선택 사항)";
   }
+  if (gameState === "MODAL" && typeof menuTab !== "undefined" && menuTab === "settings" && $("modal-title").textContent === "메뉴") renderMenu();
 }
 
 async function toggleLogin() {

@@ -1,0 +1,455 @@
+{
+ "size": 16,
+ "columns": 16,
+ "image": "assets/img/tiles.png",
+ "tiles": [
+  {
+   "id": "empty",
+   "layer": "object",
+   "walk": true
+  },
+  {
+   "id": "grass",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "풀밭"
+  },
+  {
+   "id": "grass2",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "풀밭 2"
+  },
+  {
+   "id": "meadow",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "꽃밭"
+  },
+  {
+   "id": "forest_floor",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "숲 바닥"
+  },
+  {
+   "id": "dirt",
+   "layer": "ground",
+   "walk": true,
+   "label": "흙길"
+  },
+  {
+   "id": "sand",
+   "layer": "ground",
+   "walk": true,
+   "label": "모래"
+  },
+  {
+   "id": "water",
+   "layer": "ground",
+   "walk": false,
+   "anim": "water2",
+   "label": "물"
+  },
+  {
+   "id": "water2",
+   "layer": "ground",
+   "walk": false,
+   "anim": "water",
+   "hidden": true
+  },
+  {
+   "id": "bridge",
+   "layer": "ground",
+   "walk": true,
+   "label": "다리"
+  },
+  {
+   "id": "stone",
+   "layer": "ground",
+   "walk": true,
+   "label": "돌바닥"
+  },
+  {
+   "id": "cobble",
+   "layer": "ground",
+   "walk": true,
+   "label": "자갈길"
+  },
+  {
+   "id": "wood",
+   "layer": "ground",
+   "walk": true,
+   "label": "나무 바닥"
+  },
+  {
+   "id": "carpet",
+   "layer": "ground",
+   "walk": true,
+   "label": "양탄자"
+  },
+  {
+   "id": "marble",
+   "layer": "ground",
+   "walk": true,
+   "label": "대리석"
+  },
+  {
+   "id": "snow",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "눈밭"
+  },
+  {
+   "id": "snow2",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "눈밭 2"
+  },
+  {
+   "id": "ice",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "얼음"
+  },
+  {
+   "id": "cave",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "동굴 바닥"
+  },
+  {
+   "id": "dungeon",
+   "layer": "ground",
+   "walk": true,
+   "enc": true,
+   "label": "요새 바닥"
+  },
+  {
+   "id": "void",
+   "layer": "ground",
+   "walk": false,
+   "label": "어둠"
+  },
+  {
+   "id": "cliff",
+   "layer": "ground",
+   "walk": false,
+   "label": "절벽"
+  },
+  {
+   "id": "snow_cliff",
+   "layer": "ground",
+   "walk": false,
+   "label": "눈 절벽"
+  },
+  {
+   "id": "dwall",
+   "layer": "ground",
+   "walk": false,
+   "label": "요새 벽"
+  },
+  {
+   "id": "tree",
+   "layer": "object",
+   "walk": false,
+   "label": "나무"
+  },
+  {
+   "id": "fruit_tree",
+   "layer": "object",
+   "walk": false,
+   "label": "열매나무"
+  },
+  {
+   "id": "pine",
+   "layer": "object",
+   "walk": false,
+   "label": "전나무"
+  },
+  {
+   "id": "snow_pine",
+   "layer": "object",
+   "walk": false,
+   "label": "눈 덮인 전나무"
+  },
+  {
+   "id": "dead_tree",
+   "layer": "object",
+   "walk": false,
+   "label": "고목"
+  },
+  {
+   "id": "bush",
+   "layer": "object",
+   "walk": false,
+   "label": "덤불"
+  },
+  {
+   "id": "tall_grass",
+   "layer": "object",
+   "walk": true,
+   "label": "긴 풀"
+  },
+  {
+   "id": "flowers_r",
+   "layer": "object",
+   "walk": true,
+   "label": "분홍 꽃"
+  },
+  {
+   "id": "flowers_y",
+   "layer": "object",
+   "walk": true,
+   "label": "노란 꽃"
+  },
+  {
+   "id": "rock",
+   "layer": "object",
+   "walk": false,
+   "label": "바위"
+  },
+  {
+   "id": "snow_rock",
+   "layer": "object",
+   "walk": false,
+   "label": "눈 바위"
+  },
+  {
+   "id": "wtree_tl",
+   "layer": "object",
+   "walk": false,
+   "label": "세계수 (좌상)"
+  },
+  {
+   "id": "wtree_tr",
+   "layer": "object",
+   "walk": false,
+   "label": "세계수 (우상)"
+  },
+  {
+   "id": "wtree_bl",
+   "layer": "object",
+   "walk": false,
+   "label": "세계수 (좌하)"
+  },
+  {
+   "id": "wtree_br",
+   "layer": "object",
+   "walk": false,
+   "label": "세계수 (우하)"
+  },
+  {
+   "id": "spring",
+   "layer": "object",
+   "walk": false,
+   "label": "샘"
+  },
+  {
+   "id": "crystal",
+   "layer": "object",
+   "walk": false,
+   "label": "수정"
+  },
+  {
+   "id": "ice_crystal",
+   "layer": "object",
+   "walk": false,
+   "label": "얼음 수정"
+  },
+  {
+   "id": "cave_entrance",
+   "layer": "object",
+   "walk": true,
+   "label": "동굴 입구"
+  },
+  {
+   "id": "fence_h",
+   "layer": "object",
+   "walk": false,
+   "label": "울타리 (가로)"
+  },
+  {
+   "id": "fence_v",
+   "layer": "object",
+   "walk": false,
+   "label": "울타리 (세로)"
+  },
+  {
+   "id": "sign",
+   "layer": "object",
+   "walk": false,
+   "label": "표지판"
+  },
+  {
+   "id": "chest",
+   "layer": "object",
+   "walk": false,
+   "label": "보물상자"
+  },
+  {
+   "id": "chest_open",
+   "layer": "object",
+   "walk": false,
+   "label": "열린 상자"
+  },
+  {
+   "id": "barrel",
+   "layer": "object",
+   "walk": false,
+   "label": "통"
+  },
+  {
+   "id": "crate",
+   "layer": "object",
+   "walk": false,
+   "label": "상자"
+  },
+  {
+   "id": "well",
+   "layer": "object",
+   "walk": false,
+   "label": "우물"
+  },
+  {
+   "id": "pot",
+   "layer": "object",
+   "walk": false,
+   "label": "항아리"
+  },
+  {
+   "id": "roof_l",
+   "layer": "object",
+   "walk": false,
+   "label": "지붕 (왼쪽)"
+  },
+  {
+   "id": "roof",
+   "layer": "object",
+   "walk": false,
+   "label": "지붕"
+  },
+  {
+   "id": "roof_r",
+   "layer": "object",
+   "walk": false,
+   "label": "지붕 (오른쪽)"
+  },
+  {
+   "id": "wall",
+   "layer": "object",
+   "walk": false,
+   "label": "벽"
+  },
+  {
+   "id": "window",
+   "layer": "object",
+   "walk": false,
+   "label": "창문 벽"
+  },
+  {
+   "id": "door",
+   "layer": "object",
+   "walk": true,
+   "label": "문"
+  },
+  {
+   "id": "castle_wall",
+   "layer": "object",
+   "walk": false,
+   "label": "성벽"
+  },
+  {
+   "id": "castle_top",
+   "layer": "object",
+   "walk": false,
+   "label": "성벽 위"
+  },
+  {
+   "id": "gate",
+   "layer": "object",
+   "walk": true,
+   "label": "성문"
+  },
+  {
+   "id": "banner",
+   "layer": "object",
+   "walk": false,
+   "label": "깃발"
+  },
+  {
+   "id": "pillar",
+   "layer": "object",
+   "walk": false,
+   "label": "기둥"
+  },
+  {
+   "id": "throne",
+   "layer": "object",
+   "walk": false,
+   "label": "옥좌"
+  },
+  {
+   "id": "torch",
+   "layer": "object",
+   "walk": false,
+   "label": "횃불"
+  },
+  {
+   "id": "statue",
+   "layer": "object",
+   "walk": false,
+   "label": "석상"
+  },
+  {
+   "id": "portal",
+   "layer": "object",
+   "walk": true,
+   "label": "차원문"
+  },
+  {
+   "id": "counter",
+   "layer": "object",
+   "walk": false,
+   "label": "계산대"
+  },
+  {
+   "id": "shelf",
+   "layer": "object",
+   "walk": false,
+   "label": "책장"
+  },
+  {
+   "id": "bed",
+   "layer": "object",
+   "walk": false,
+   "label": "침대"
+  },
+  {
+   "id": "table",
+   "layer": "object",
+   "walk": false,
+   "label": "탁자"
+  },
+  {
+   "id": "stairs_down",
+   "layer": "object",
+   "walk": true,
+   "label": "내려가는 계단"
+  },
+  {
+   "id": "stairs_up",
+   "layer": "object",
+   "walk": true,
+   "label": "올라가는 계단"
+  }
+ ]
+}

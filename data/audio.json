@@ -1,0 +1,154 @@
+{
+ "sampleRate": 44100,
+ "bgm": {
+  "title": {
+   "file": "assets/bgm/title.mp3",
+   "title": "타이틀 — 쐐기의 이방인",
+   "loop": 45.714286,
+   "bpm": 84
+  },
+  "field": {
+   "file": "assets/bgm/field.mp3",
+   "title": "바람결 초원",
+   "loop": 32.0,
+   "bpm": 120
+  },
+  "town": {
+   "file": "assets/bgm/town.mp3",
+   "title": "하젤 마을",
+   "loop": 38.4,
+   "bpm": 100
+  },
+  "forest": {
+   "file": "assets/bgm/forest.mp3",
+   "title": "세계수의 숲",
+   "loop": 43.636364,
+   "bpm": 88
+  },
+  "castle": {
+   "file": "assets/bgm/castle.mp3",
+   "title": "왕도 루센",
+   "loop": 36.923077,
+   "bpm": 104
+  },
+  "snow": {
+   "file": "assets/bgm/snow.mp3",
+   "title": "서리 평원",
+   "loop": 50.526316,
+   "bpm": 76
+  },
+  "mountain": {
+   "file": "assets/bgm/mountain.mp3",
+   "title": "그롬 산길",
+   "loop": 40.0,
+   "bpm": 96
+  },
+  "dungeon": {
+   "file": "assets/bgm/dungeon.mp3",
+   "title": "녹턴 요새",
+   "loop": 41.73913,
+   "bpm": 92
+  },
+  "battle": {
+   "file": "assets/bgm/battle.mp3",
+   "title": "전투",
+   "loop": 25.6,
+   "bpm": 150
+  },
+  "boss": {
+   "file": "assets/bgm/boss.mp3",
+   "title": "관리자 오르벨",
+   "loop": 24.0,
+   "bpm": 160
+  },
+  "ending": {
+   "file": "assets/bgm/ending.mp3",
+   "title": "엔딩 — 새로운 순환",
+   "loop": 53.333333,
+   "bpm": 72
+  }
+ },
+ "sfx": {
+  "step": {
+   "file": "assets/sfx/step.mp3",
+   "title": "발걸음"
+  },
+  "cursor": {
+   "file": "assets/sfx/cursor.mp3",
+   "title": "커서 이동"
+  },
+  "confirm": {
+   "file": "assets/sfx/confirm.mp3",
+   "title": "확인"
+  },
+  "cancel": {
+   "file": "assets/sfx/cancel.mp3",
+   "title": "취소"
+  },
+  "error": {
+   "file": "assets/sfx/error.mp3",
+   "title": "오류"
+  },
+  "hit": {
+   "file": "assets/sfx/hit.mp3",
+   "title": "타격"
+  },
+  "slash": {
+   "file": "assets/sfx/slash.mp3",
+   "title": "베기"
+  },
+  "fire": {
+   "file": "assets/sfx/fire.mp3",
+   "title": "화염 마법"
+  },
+  "wind": {
+   "file": "assets/sfx/wind.mp3",
+   "title": "바람 마법"
+  },
+  "heal": {
+   "file": "assets/sfx/heal.mp3",
+   "title": "회복"
+  },
+  "guard": {
+   "file": "assets/sfx/guard.mp3",
+   "title": "방어"
+  },
+  "coin": {
+   "file": "assets/sfx/coin.mp3",
+   "title": "동전"
+  },
+  "levelup": {
+   "file": "assets/sfx/levelup.mp3",
+   "title": "레벨 업"
+  },
+  "encounter": {
+   "file": "assets/sfx/encounter.mp3",
+   "title": "적 조우"
+  },
+  "door": {
+   "file": "assets/sfx/door.mp3",
+   "title": "문"
+  },
+  "chest": {
+   "file": "assets/sfx/chest.mp3",
+   "title": "상자 열기"
+  },
+  "warp": {
+   "file": "assets/sfx/warp.mp3",
+   "title": "이동(워프)"
+  },
+  "enemy_die": {
+   "file": "assets/sfx/enemy_die.mp3",
+   "title": "적 소멸"
+  },
+  "item": {
+   "file": "assets/sfx/item.mp3",
+   "title": "아이템 사용"
+  },
+  "fanfare": {
+   "file": "assets/sfx/fanfare.mp3",
+   "title": "승리 팡파르"
+  }
+ },
+ "decoderDelay": 1105
+}

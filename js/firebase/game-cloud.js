@@ -2,7 +2,6 @@
 // Firebase 연결 (게임용, ES module)
 // 게임 본체는 Firebase를 직접 import 하지 않고 window.cloud 만 사용한다.
 //  - signIn / signOut / load / save : 클라우드 세이브 (saves/{uid})
-//  - getScriptKey(keyId)            : 시나리오 복호화 키 (scriptKeys/{keyId}, 누구나 읽기)
 // 준비가 끝나면 document 에 "cloud-ready" 이벤트를 보낸다.
 // ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
@@ -25,12 +24,7 @@ window.cloud = {
     const snap = await getDoc(saveRef());
     return snap.exists() ? snap.data() : null;
   },
-  save(data) { return setDoc(saveRef(), data); },
-  async getScriptKey(keyId) {
-    const snap = await getDoc(doc(db, "scriptKeys", keyId));
-    if (!snap.exists()) throw new Error(`scriptKeys/${keyId} 없음`);
-    return snap.data().key;
-  }
+  save(data) { return setDoc(saveRef(), data); }
 };
 
 document.dispatchEvent(new Event("cloud-ready"));

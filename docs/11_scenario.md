@@ -35,45 +35,53 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 | 파일 | 내용 |
 |---|---|
 | `00_system.script` | 타이틀·엔딩 문구(`@text`), 새 게임 인트로(`intro`), 전멸(`party_wiped`) |
-| `01_quests.script` | HUD 현재 목표 (`@quest`) |
-| `02_events.script` | 맵 이벤트 — 좌표·NPC 스프라이트·분기 (`@event`) |
-| `10_ch1_elf_forest.script` | 1장 리아 합류, 성소 회복 |
-| `20_ch2_kingdom.script` | 2장 근위병, 가렌 합류 |
-| `30_ch3_demon_castle.script` | 3장 결계, 마왕 대면·보스전 |
-| `90_ending.script` | 엔딩 장면 |
+| `01_quests.script` | 퀘스트 정의 (`@quest`) |
+| `10_meadow_hazel.script` | 초원·하젤 마을·촌장의 집 이벤트와 대화 |
+| `20_forest_elbrea.script` | 숲길·엘브레아 (1장, 리아 합류) |
+| `30_lucen.script` | 왕도 루센·알현실 (2장, 가렌 합류) |
+| `40_north.script` | 그롬 산길·서리 평원·녹턴 요새 (3장) |
+| `90_finale.script` | 오르벨·엔딩 |
 
 ## 문법
 
 ```
 # 주석 (줄 맨 앞 #)
 
-@scene 장면id                    ← 대사·명령 묶음
-화자: 대사                        ← 대화 한 줄. 첫 ": " 앞이 화자
-  들여쓴 줄                       ← 바로 앞 대사에 줄바꿈으로 이어 붙음 (\n 도 가능)
-> 명령 인자...                    ← 명령 (아래 표)
-? 조건 -> 장면id                  ← 조건이 맞으면 그 장면으로 이동하고 현재 장면 종료
--> 장면id                         ← 무조건 이동
+@scene 장면id                       ← 대사·명령 묶음
+화자: 대사                           ← 대화 한 줄. 첫 ": " 앞이 화자. {hero} = 주인공 이름
+  들여쓴 줄                          ← 바로 앞 대사에 줄바꿈으로 이어 붙음 (
+ 도 가능)
+> 명령 인자...                       ← 명령 (아래 표)
+? 조건 -> 장면id                     ← 조건이 맞으면 그 장면으로 이동하고 현재 장면 종료
+-> 장면id                            ← 무조건 이동
 
-@event 이벤트id x,y 장소이름       ← 맵 좌표 이벤트. 내용 문법은 @scene 과 같음
-* sprite 스프라이트키 [when 조건]  ← 맵에 그릴 NPC (조건이 맞을 때만)
+@event 이벤트id 맵id:x,y 이름          ← 맵 이벤트. 내용 문법은 @scene 과 같음
+* sprite 캐릭터키 [when 조건]          ← 맵에 그릴 NPC (조건이 맞을 때만). NPC 칸은 지나갈 수 없다
+* tile 타일id [when 조건]              ← 그 칸의 오브젝트를 바꿔 그림 (예: 열린 상자)
+* trigger talk | touch                 ← talk: 마주 보고 Space / touch: 밟으면 실행
+                                         (기본값: sprite 가 있으면 talk, 없으면 touch)
+* face down|up|left|right              ← NPC 기본 방향 (말을 걸면 주인공 쪽을 본다)
 
-@quest N                         ← 스토리 플래그가 N 이상일 때 HUD 목표 (가장 큰 N 사용)
-목표 문구
+@quest 퀘스트id main|side 제목          ← 퀘스트 정의. 다음 줄부터 설명 (HUD·퀘스트 메뉴에 표시)
 
-@text 키                          ← 화면 문구: title_desc, ending_title, ending_body
+@text 키                              ← 화면 문구: title_desc, ending_title, ending_body
 문구 (여러 줄 가능)
 ```
 
 - 연속된 대사는 대화창 하나로 이어서 나오고, 대화가 끝난 뒤 다음 명령이 실행된다.
 - 명령은 위에서 아래로 순서대로 실행된다. 대사 앞에 둔 명령은 대화창이 뜨기 전에 실행된다.
-- 필수 장면: `intro` (새 게임 시작), `party_wiped` (전멸 후 — 시작 위치 이동·회복은 게임이 먼저 처리)
+- 계산대(`counter` 타일) 너머의 NPC 에게도 말을 걸 수 있다.
+- 필수 장면: `intro` (새 게임 시작), `party_wiped` (전멸 후 — 부활 위치 이동·회복은 게임이 먼저 처리)
+- 맵 출구(`data/maps/*.json` 의 `warps`)에 `fail` 로 지정한 장면도 시나리오에 있어야 한다.
 
 ### 조건
 
 | 조건 | 예 |
 |---|---|
 | 비교 (`== != >= <= > <`) | `flag == 1`, `lv >= 4`, `gold >= 100`, `weapon >= 2`, `armor < 3` |
-| 파티 합류 여부 | `joined elf`, `!joined knight` (`not joined` 도 가능) |
+| 변수 | `var chest_forest == 1` (`> set` 으로 설정, 없으면 0) |
+| 파티 합류 여부 | `joined ria`, `!joined garen` (`not joined` 도 가능) |
+| 퀘스트 상태 | `quest side_herb active`, `quest main_forest done`, `!quest side_pendant none` |
 | 아이템 개수 | `item potion >= 1` |
 | 여러 조건 | `flag == 2 and lv >= 4` |
 
@@ -82,32 +90,34 @@ scenario-src/*.script  ── 관리자 페이지 ──▶  scenario/manifest.j
 | 명령 | 효과 |
 |---|---|
 | `> flag N` | 스토리 플래그 설정 |
-| `> join ID` / `> leave ID` | 파티 합류 / 이탈 (`hero`, `elf`, `knight`; 주인공은 이탈 불가) |
+| `> set 변수 N` | 변수 설정 (상자 열림·일회성 이벤트 등) |
+| `> join ID` / `> leave ID` | 파티 합류 / 이탈 (`hero`, `ria`, `garen`; 주인공은 이탈 불가) |
+| `> quest start ID` / `> quest done ID` | 퀘스트 시작 / 완료 (알림 표시) |
 | `> heal` | 파티 전원 HP·MP 완전 회복 |
-| `> sfx 이름` | 효과음 (`step`, `hit`, `magic`, `heal`, `coin`, `levelup`) |
-| `> bgm field` / `> bgm battle` | 배경음 |
+| `> sfx ID` / `> bgm ID` | 효과음 / 배경음 (`data/audio.json` 의 id — 관리자 '리소스' 탭) |
 | `> save` | 자동 저장 (로그인 시 클라우드에도) |
 | `> weapon +N` / `> armor +N` | 파티 무기·방어구 N단계 무료 강화 |
 | `> gold ±N` / `> exp +N` | 골드 증감 (0 미만 불가) / 경험치 (레벨업 처리) |
-| `> item ID ±N` | 아이템 증감 (`potion`, `ether`) |
-| `> move X,Y` | 플레이어 위치 이동 |
+| `> item ID ±N` | 아이템 증감 (`data/items.json` 의 id) |
+| `> move X,Y [방향]` | 같은 맵 안에서 위치 이동 |
+| `> warp 맵ID X,Y [방향]` | 다른 맵으로 이동 (페이드) — **장면 종료** |
 | `> goto 장면id` | 다른 장면으로 이동 (`-> 장면id` 와 같음) |
-| `> shop 이름` | 상점 열기 — **장면 종료** |
-| `> battle 적id [boss] [win=장면id]` | 전투 — **장면 종료**. `boss`: 도망 불가·승리 자동저장 없음. `win=`: 승리 후 실행할 장면 |
+| `> shop 상점ID` | 상점 열기 (`data/items.json` 의 shops) — **장면 종료** |
+| `> battle 적1,적2,적3 [boss] [win=장면id]` | 전투 (1~3마리) — **장면 종료**. `boss`: 도망 불가·보스 음악·승리 자동저장 없음. `win=`: 승리 후 장면 |
 | `> ending` | 엔딩 화면 (`@text ending_title`, `ending_body`) — **장면 종료** |
 
-id 목록 — 파티: [04_characters.md](04_characters.md), 적: [06_monsters.md](06_monsters.md), 스프라이트: `js/data/sprites.js`.
+id 목록 — 파티·스프라이트: [04_characters.md](04_characters.md), 적: [06_monsters.md](06_monsters.md), 맵: [02_world.md](02_world.md), 아이템·상점: [07_systems.md](07_systems.md), 타일·음원: 관리자 '리소스' 탭.
 
 ### 검사 (관리자 페이지·게임 로드 시 공통)
-- **오류 (저장 불가):** 문법 오류, 없는 장면·파티원·적·아이템·스프라이트 참조, 장면/이벤트 id 중복, 같은 좌표 이벤트 2개, 맵 밖 좌표, 필수 장면 누락
-- **경고 (저장 가능):** 호출되지 않는 장면, 지나갈 수 없는 타일 위 이벤트, `@text`/`@quest 0` 누락
+- **오류 (저장 불가):** 문법 오류, 없는 장면·맵·파티원·적·아이템·상점·퀘스트·스프라이트·타일·음원 참조, id 중복, 같은 칸 이벤트 2개, 맵 밖 좌표, 지나갈 수 없는 워프 도착지, 필수 장면·출구 fail 장면 누락
+- **경고 (저장 가능):** 호출되지 않는 장면, 막힌 칸의 밟기 이벤트, `@text` 누락
 
 ## 관리자 페이지 (`admin.html`)
 
 | 항목 | 내용 |
 |---|---|
 | 주소 | https://leha82.github.io/isekai-jrpg/admin.html (게임에서 링크하지 않음, 검색 제외) · 로컬은 VS Code F5 후 `localhost:8000/admin.html` |
-| 접근 | Google 로그인 → `MASTER_EMAIL`(`js/config.js`) 확인 → Firestore `admin/github` 읽기로 서버 권한 확인. 마스터가 아니면 "권한 없음" |
+| 접근 | Google 로그인 → Firestore `admin/github` 읽기로 서버 권한 확인 (최고 관리자 또는 지정된 관리자). 아니면 "권한 없음" — 메뉴 전체는 [13_admin.md](13_admin.md) |
 | 파일로 직접 열기 | 동작하지 않음 (Firebase 로그인·모듈 로드 불가) |
 | 편집 | 파일 목록, 줄 번호 편집기, 실시간 검사(클릭하면 해당 줄로 이동), 문법 도움말, `Ctrl+S` 저장 |
 | 파일 관리 | 새 파일, 이름 변경, 삭제, 📥 파일 가져오기, 📁 폴더 가져오기(`scenario-src` 통째로), 📤 내보내기 |

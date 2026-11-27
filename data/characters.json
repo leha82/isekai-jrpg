@@ -1,0 +1,122 @@
+{
+ "party": [
+  {
+   "id": "hero",
+   "name": "{hero}",
+   "role": "이세계인",
+   "sprite": "hero",
+   "portrait": "hero",
+   "startUnlocked": true,
+   "stats": {
+    "hp": 55,
+    "mp": 25,
+    "atk": 12,
+    "matk": 18,
+    "def": 4
+   },
+   "growth": {
+    "hp": 14,
+    "mp": 5,
+    "atk": 3,
+    "matk": 4,
+    "def": 2
+   },
+   "skills": [
+    "slash",
+    "fire",
+    "heal"
+   ],
+   "desc": "평범한 직장인이었지만 이 세계의 마력에 물들지 않은 '쐐기'의 영혼을 지녔다. 모든 마법을 빠르게 흡수한다."
+  },
+  {
+   "id": "ria",
+   "name": "리아",
+   "role": "엘프 궁수",
+   "sprite": "ria",
+   "portrait": "ria",
+   "startUnlocked": false,
+   "stats": {
+    "hp": 45,
+    "mp": 30,
+    "atk": 14,
+    "matk": 16,
+    "def": 3
+   },
+   "growth": {
+    "hp": 11,
+    "mp": 6,
+    "atk": 3,
+    "matk": 4,
+    "def": 1
+   },
+   "skills": [
+    "aimed_shot",
+    "gale",
+    "heal_all"
+   ],
+   "desc": "세계수의 숲 엘브레아의 정찰병. 이방인의 영혼 파장을 가장 먼저 알아본다."
+  },
+  {
+   "id": "garen",
+   "name": "가렌",
+   "role": "왕국 기사",
+   "sprite": "garen",
+   "portrait": "garen",
+   "startUnlocked": false,
+   "stats": {
+    "hp": 75,
+    "mp": 15,
+    "atk": 16,
+    "matk": 8,
+    "def": 7
+   },
+   "growth": {
+    "hp": 18,
+    "mp": 3,
+    "atk": 4,
+    "matk": 1,
+    "def": 3
+   },
+   "skills": [
+    "power_strike",
+    "royal_slash",
+    "guard"
+   ],
+   "desc": "루센 왕국 기사단장. 전위에서 동료를 지키는 방패."
+  }
+ ],
+ "portraits": {
+  "hero": "assets/img/portraits/hero.svg",
+  "ria": "assets/img/portraits/ria.svg",
+  "garen": "assets/img/portraits/garen.svg",
+  "orvel": "assets/img/portraits/orvel.svg",
+  "king": "assets/img/portraits/king.svg",
+  "elder": "assets/img/portraits/elder.svg"
+ },
+ "speakerPortraits": [
+  {
+   "match": "{hero}",
+   "portrait": "hero"
+  },
+  {
+   "match": "리아",
+   "portrait": "ria"
+  },
+  {
+   "match": "가렌",
+   "portrait": "garen"
+  },
+  {
+   "match": "오르벨",
+   "portrait": "orvel"
+  },
+  {
+   "match": "국왕",
+   "portrait": "king"
+  },
+  {
+   "match": "촌장",
+   "portrait": "elder"
+  }
+ ]
+}

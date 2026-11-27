@@ -1,0 +1,109 @@
+{
+ "slash": {
+  "name": "검격",
+  "icon": "⚔️",
+  "mp": 0,
+  "type": "physical",
+  "target": "enemy",
+  "fx": "slash",
+  "sfx": "slash",
+  "power": 1.0,
+  "variance": 4,
+  "desc": "검으로 적 하나를 벤다."
+ },
+ "fire": {
+  "name": "파이어",
+  "icon": "🔥",
+  "mp": 5,
+  "type": "magic",
+  "target": "enemy",
+  "fx": "fire",
+  "sfx": "fire",
+  "power": 1.0,
+  "variance": 7,
+  "desc": "화염구를 날려 적 하나에게 마법 피해."
+ },
+ "heal": {
+  "name": "힐",
+  "icon": "✨",
+  "mp": 4,
+  "type": "heal",
+  "target": "ally",
+  "fx": "heal",
+  "sfx": "heal",
+  "base": 20,
+  "power": 0.8,
+  "desc": "HP 비율이 가장 낮은 아군 하나를 회복."
+ },
+ "aimed_shot": {
+  "name": "정밀사격",
+  "icon": "🏹",
+  "mp": 0,
+  "type": "physical",
+  "target": "enemy",
+  "fx": "arrow",
+  "sfx": "slash",
+  "power": 1.0,
+  "variance": 6,
+  "crit": 0.2,
+  "desc": "급소를 노린다. 치명타 확률이 높다."
+ },
+ "gale": {
+  "name": "질풍",
+  "icon": "🌪️",
+  "mp": 6,
+  "type": "magic",
+  "target": "all_enemies",
+  "fx": "wind",
+  "sfx": "wind",
+  "power": 0.75,
+  "variance": 3,
+  "desc": "바람의 칼날로 적 전체에 마법 피해."
+ },
+ "heal_all": {
+  "name": "전체치유",
+  "icon": "💚",
+  "mp": 8,
+  "type": "heal",
+  "target": "all_allies",
+  "fx": "heal",
+  "sfx": "heal",
+  "base": 22,
+  "power": 0.4,
+  "desc": "정령의 힘으로 아군 전체 회복."
+ },
+ "power_strike": {
+  "name": "강타",
+  "icon": "🗡️",
+  "mp": 0,
+  "type": "physical",
+  "target": "enemy",
+  "fx": "slash",
+  "sfx": "hit",
+  "power": 1.0,
+  "variance": 4,
+  "desc": "대검으로 내려친다."
+ },
+ "royal_slash": {
+  "name": "왕가일섬",
+  "icon": "⚡",
+  "mp": 6,
+  "type": "physical",
+  "target": "enemy",
+  "fx": "bigslash",
+  "sfx": "slash",
+  "power": 1.65,
+  "variance": 0,
+  "desc": "왕가 검술의 일격. 강력한 물리 피해."
+ },
+ "guard": {
+  "name": "철벽수호",
+  "icon": "🛡️",
+  "mp": 0,
+  "type": "guard",
+  "target": "all_allies",
+  "fx": "shield",
+  "sfx": "guard",
+  "desc": "이번 라운드 동안 파티가 받는 피해를 절반으로 줄인다."
+ }
+}

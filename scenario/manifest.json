@@ -4,11 +4,11 @@
   "files": [
     "00_system.script",
     "01_quests.script",
-    "02_events.script",
-    "10_ch1_elf_forest.script",
-    "20_ch2_kingdom.script",
-    "30_ch3_demon_castle.script",
-    "90_ending.script"
+    "10_meadow_hazel.script",
+    "20_forest_elbrea.script",
+    "30_lucen.script",
+    "40_north.script",
+    "90_finale.script"
   ],
-  "updatedAt": "2026-11-27T09:33:24.088Z"
+  "updatedAt": "2026-11-27T10:30:09.195247Z"
 }

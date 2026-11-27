@@ -104,8 +104,9 @@ const firebaseConfig = {
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
 - [x] 보안 규칙 게시
 - [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
-- [ ] (시나리오) 새 `firestore.rules` 게시
-- [ ] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드
+- [x] (시나리오) `firestore.rules` 게시 (2026-11-27 확인)
+- [x] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드 (커밋 fb552c4)
+- [ ] (관리자 지정) 최신 `firestore.rules` 다시 게시 — `isAdmin()`·`config/admins` 추가됨
 
 ## 문제 해결
 로그인에 실패하면 게임 화면에 원인 토스트가 뜨고, F12 콘솔에 `[로그인 실패] <코드>`가 기록된다.
@@ -121,3 +122,8 @@ const firebaseConfig = {
 | 로그인 팝업이 바로 닫힘 | 브라우저 팝업 차단 해제 |
 | 저장 시 `permission-denied` | 보안 규칙 미게시, 또는 로그인하지 않은 상태 |
 | 갑자기 저장이 안 됨 | 무료 한도 초과로 그날(또는 그 달) 기능 중지 — 콘솔 사용량 탭 확인 |
+
+## 8. 관리자 지정 기능 (2026-11-27)
+- `firestore.rules` 에 `isAdmin()` 이 추가되었다: 최고 관리자 또는 Firestore `config/admins` 문서의 `emails` 목록에 있는 계정(소문자, 이메일 인증된 Google 계정).
+- `scriptKeys` 생성·삭제와 `admin/*` 읽기·쓰기는 관리자, `config/admins` 쓰기는 최고 관리자만.
+- **최신 `firestore.rules` 전체를 콘솔에 다시 게시해야** 관리자 페이지의 '관리자 지정' 탭과 다른 관리자의 접속이 동작한다. 게시 전에도 최고 관리자는 이전 규칙으로 계속 쓸 수 있다.

@@ -1,0 +1,69 @@
+{
+ "items": {
+  "potion": {
+   "name": "체력 포션",
+   "icon": "🧪",
+   "type": "heal_hp",
+   "amount": 45,
+   "price": 20,
+   "desc": "아군 하나의 HP를 45 회복."
+  },
+  "hi_potion": {
+   "name": "고급 포션",
+   "icon": "💖",
+   "type": "heal_hp",
+   "amount": 120,
+   "price": 60,
+   "desc": "아군 하나의 HP를 120 회복."
+  },
+  "ether": {
+   "name": "마력 에테르",
+   "icon": "💧",
+   "type": "heal_mp",
+   "amount": 20,
+   "price": 25,
+   "desc": "아군 하나의 MP를 20 회복."
+  },
+  "herb": {
+   "name": "은빛 약초",
+   "icon": "🌿",
+   "type": "key",
+   "price": 0,
+   "desc": "속삭이는 숲길에서만 자라는 약초. 하젤 촌장이 찾고 있다."
+  },
+  "pendant": {
+   "name": "은 펜던트",
+   "icon": "📿",
+   "type": "key",
+   "price": 0,
+   "desc": "루센의 소녀가 잃어버린 펜던트. 아버지의 유품이라고 한다."
+  }
+ },
+ "shops": {
+  "hazel_shop": {
+   "name": "하젤 잡화점·여관",
+   "items": [
+    "potion",
+    "ether"
+   ],
+   "inn": 10,
+   "upgrades": false
+  },
+  "lucen_market": {
+   "name": "루센 시장",
+   "items": [
+    "potion",
+    "hi_potion",
+    "ether"
+   ],
+   "inn": 20,
+   "upgrades": false
+  },
+  "lucen_smith": {
+   "name": "루센 대장간",
+   "items": [],
+   "inn": 0,
+   "upgrades": true
+  }
+ }
+}

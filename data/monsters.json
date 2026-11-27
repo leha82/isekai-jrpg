@@ -1,0 +1,314 @@
+{
+ "slime": {
+  "name": "초원 슬라임",
+  "sprite": "slime",
+  "hp": 28,
+  "atk": 7,
+  "def": 0,
+  "exp": 10,
+  "gold": 8,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [
+   {
+    "item": "potion",
+    "chance": 0.06
+   }
+  ],
+  "desc": "초원에 흔한 말랑한 슬라임."
+ },
+ "bat": {
+  "name": "동굴 박쥐",
+  "sprite": "bat",
+  "hp": 22,
+  "atk": 9,
+  "def": 0,
+  "exp": 11,
+  "gold": 9,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [],
+  "desc": "날카로운 이빨로 물어뜯는다."
+ },
+ "goblin": {
+  "name": "숲 고블린",
+  "sprite": "goblin",
+  "hp": 48,
+  "atk": 12,
+  "def": 2,
+  "exp": 22,
+  "gold": 18,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [
+   {
+    "item": "potion",
+    "chance": 0.1
+   }
+  ],
+  "desc": "숲길을 떠도는 약탈자."
+ },
+ "slime_poison": {
+  "name": "독 슬라임",
+  "sprite": "slime_poison",
+  "hp": 42,
+  "atk": 10,
+  "def": 1,
+  "exp": 18,
+  "gold": 14,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [],
+  "desc": "숲의 독기를 머금은 슬라임."
+ },
+ "wolf": {
+  "name": "산늑대",
+  "sprite": "wolf",
+  "hp": 70,
+  "atk": 17,
+  "def": 3,
+  "exp": 34,
+  "gold": 22,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [],
+  "desc": "그롬 산길의 굶주린 늑대."
+ },
+ "golem": {
+  "name": "바위 골렘",
+  "sprite": "golem",
+  "hp": 120,
+  "atk": 20,
+  "def": 8,
+  "exp": 55,
+  "gold": 35,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "바위 주먹",
+    "weight": 3
+   },
+   {
+    "type": "special",
+    "name": "대지 울림",
+    "power": 0.7,
+    "target": "all",
+    "weight": 1,
+    "fx": "quake"
+   }
+  ],
+  "drops": [
+   {
+    "item": "ether",
+    "chance": 0.15
+   }
+  ],
+  "desc": "드워프가 버린 수호 골렘."
+ },
+ "snow_wolf": {
+  "name": "설원 늑대",
+  "sprite": "snow_wolf",
+  "hp": 95,
+  "atk": 23,
+  "def": 5,
+  "exp": 48,
+  "gold": 30,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [],
+  "desc": "눈보라 속에서 무리 지어 사냥한다."
+ },
+ "wisp": {
+  "name": "서리 정령",
+  "sprite": "wisp",
+  "hp": 80,
+  "atk": 18,
+  "def": 2,
+  "exp": 50,
+  "gold": 32,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "냉기",
+    "weight": 2
+   },
+   {
+    "type": "special",
+    "name": "서리 바람",
+    "power": 0.8,
+    "target": "all",
+    "weight": 1,
+    "fx": "frost"
+   }
+  ],
+  "drops": [
+   {
+    "item": "ether",
+    "chance": 0.2
+   }
+  ],
+  "desc": "차원의 틈에서 새어 나온 냉기."
+ },
+ "slime_ice": {
+  "name": "얼음 슬라임",
+  "sprite": "slime_ice",
+  "hp": 75,
+  "atk": 19,
+  "def": 4,
+  "exp": 40,
+  "gold": 26,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [],
+  "desc": "몸이 얼어붙어 단단하다."
+ },
+ "dark_knight": {
+  "name": "녹턴 흑기사",
+  "sprite": "dark_knight",
+  "hp": 150,
+  "atk": 28,
+  "def": 9,
+  "exp": 80,
+  "gold": 50,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "공격",
+    "weight": 1
+   }
+  ],
+  "drops": [
+   {
+    "item": "hi_potion",
+    "chance": 0.12
+   }
+  ],
+  "desc": "이방인을 회수하라는 명을 받은 정예병."
+ },
+ "wraith": {
+  "name": "망령",
+  "sprite": "wraith",
+  "hp": 120,
+  "atk": 26,
+  "def": 4,
+  "exp": 75,
+  "gold": 45,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "할퀴기",
+    "weight": 2
+   },
+   {
+    "type": "special",
+    "name": "영혼 흡수",
+    "power": 0.75,
+    "target": "all",
+    "weight": 1,
+    "fx": "dark"
+   }
+  ],
+  "drops": [],
+  "desc": "균열에 삼켜진 자들의 잔영."
+ },
+ "captain": {
+  "name": "흑기사 대장 바르구스",
+  "sprite": "captain",
+  "hp": 420,
+  "atk": 32,
+  "def": 10,
+  "exp": 300,
+  "gold": 200,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "대검 베기",
+    "weight": 3
+   },
+   {
+    "type": "special",
+    "name": "흑염 참격",
+    "power": 1.0,
+    "target": "all",
+    "weight": 1,
+    "fx": "dark"
+   }
+  ],
+  "drops": [
+   {
+    "item": "hi_potion",
+    "chance": 1
+   }
+  ],
+  "desc": "녹턴 요새의 문지기."
+ },
+ "orvel": {
+  "name": "세계 관리자 오르벨",
+  "sprite": "orvel",
+  "hp": 900,
+  "atk": 38,
+  "def": 10,
+  "exp": 0,
+  "gold": 0,
+  "actions": [
+   {
+    "type": "attack",
+    "name": "마력탄",
+    "weight": 3
+   },
+   {
+    "type": "special",
+    "name": "차원 붕괴",
+    "power": 1.1,
+    "target": "all",
+    "weight": 2,
+    "fx": "dark"
+   },
+   {
+    "type": "special",
+    "name": "마력 폭풍",
+    "power": 1.6,
+    "target": "one",
+    "weight": 1,
+    "fx": "frost"
+   }
+  ],
+  "drops": [],
+  "desc": "세계의 붕괴를 막으려 '쐐기'를 소환한 고대 대마법사."
+ }
+}
