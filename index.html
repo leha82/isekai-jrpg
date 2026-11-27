@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>아르카디아 연대기 - 이세계 전생 JRPG</title>
+<style>
+  * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+  body {
+    margin: 0; background: #0f172a; color: #fff;
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 8px; overflow-x: hidden;
+  }
+  #game-container {
+    position: relative; width: 100%; max-width: 640px; aspect-ratio: 4 / 3;
+    border: 4px solid #fff; border-radius: 6px; background: #000;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.35); overflow: hidden;
+  }
+  canvas#world-canvas { display: block; image-rendering: pixelated; width: 100%; height: 100%; }
+
+  .ui-box {
+    position: absolute; background: rgba(10, 15, 35, 0.92);
+    border: 2px solid #fff; border-radius: 6px; padding: 8px 10px;
+    box-shadow: inset 0 0 6px rgba(255,255,255,0.2);
+  }
+  #hud {
+    top: 8px; left: 8px; width: 225px; font-size: 11px; line-height: 1.35; z-index: 5;
+  }
+  .party-row { border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 3px; margin-bottom: 3px; }
+  .party-row:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+  .gold-bar { color: #facc15; font-weight: bold; margin-top: 3px; display: flex; justify-content: space-between; align-items: center; }
+
+  #quest-box {
+    top: 8px; right: 8px; width: 215px; font-size: 11px; color: #ffd700; z-index: 5;
+  }
+  #top-controls {
+    position: absolute; top: 82px; right: 8px; display: flex; gap: 4px; z-index: 6;
+  }
+  .mini-btn {
+    background: #1e293b; color: #fff; border: 1.5px solid #94a3b8; border-radius: 4px;
+    padding: 4px 7px; font-size: 11px; cursor: pointer; font-weight: bold;
+  }
+  .mini-btn:hover { background: #334155; border-color: #fff; }
+
+  #dialog-box {
+    bottom: 10px; left: 10px; right: 10px; min-height: 105px;
+    display: none; flex-direction: column; justify-content: space-between; z-index: 10;
+  }
+  #dialog-speaker { font-weight: bold; color: #38bdf8; margin-bottom: 4px; font-size: 13px; }
+  #dialog-text { font-size: 13px; line-height: 1.45; white-space: pre-line; }
+  #dialog-next { align-self: flex-end; font-size: 11px; color: #94a3b8; animation: blink 1s infinite; cursor: pointer; }
+
+  /* 상점 & 인벤토리 모달 */
+  #modal-ui {
+    position: absolute; inset: 16px; background: rgba(10, 15, 35, 0.97);
+    border: 3px solid #facc15; border-radius: 8px; padding: 14px;
+    display: none; flex-direction: column; justify-content: space-between; z-index: 15;
+  }
+  #modal-title { font-size: 16px; font-weight: bold; color: #facc15; border-bottom: 1px solid #475569; padding-bottom: 6px; }
+  #modal-list { flex: 1; overflow-y: auto; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
+  .item-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e293b; padding: 7px 10px; border-radius: 4px; border: 1px solid #475569; font-size: 12px;
+  }
+  .item-btn {
+    background: #2563eb; color: #fff; border: 1px solid #fff; border-radius: 4px;
+    padding: 4px 10px; font-size: 11px; cursor: pointer; font-weight: bold;
+  }
+  .item-btn:disabled { background: #475569; border-color: #64748b; cursor: not-allowed; }
+
+  /* 전투 UI */
+  #battle-ui {
+    position: absolute; inset: 0; display: none; flex-direction: column; justify-content: space-between;
+    background: linear-gradient(to bottom, #1e1b4b 0%, #090d16 68%); padding: 12px; z-index: 12;
+  }
+  #battle-stage {
+    flex: 1; display: flex; align-items: center; justify-content: space-around; padding-top: 8px;
+  }
+  #party-sprites { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .ally-unit { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; border: 1px solid #475569; font-size: 11px; }
+  .ally-unit.active-turn { border-color: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.6); }
+  .sprite-box { width: 32px; height: 32px; image-rendering: pixelated; }
+
+  #enemy-area { display: flex; flex-direction: column; align-items: center; }
+  #enemy-canvas { width: 104px; height: 104px; image-rendering: pixelated; }
+  #enemy-info {
+    background: rgba(0,0,0,0.75); border: 2px solid #fff; padding: 5px 12px;
+    border-radius: 4px; margin-top: 6px; text-align: center; font-size: 12px;
+  }
+  #battle-bottom { display: flex; gap: 8px; height: 135px; }
+  #battle-log {
+    flex: 1.5; background: rgba(10, 15, 35, 0.95); border: 2px solid #fff;
+    border-radius: 6px; padding: 8px; font-size: 12px; line-height: 1.4; overflow-y: auto;
+  }
+  #battle-commands {
+    flex: 1.1; background: rgba(10, 15, 35, 0.95); border: 2px solid #fff;
+    border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
+  }
+  #turn-indicator { font-size: 11px; color: #facc15; font-weight: bold; text-align: center; }
+  #cmd-grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  button.cmd-btn {
+    background: #1e293b; color: #fff; border: 1.5px solid #64748b; border-radius: 4px;
+    font-size: 11px; font-weight: bold; cursor: pointer;
+  }
+  button.cmd-btn:hover:not(:disabled) { background: #2563eb; border-color: #fff; }
+  button.cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* 타이틀/엔딩 오버레이 */
+  #overlay-screen {
+    position: absolute; inset: 0; background: rgba(5, 8, 20, 0.96);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 20px; z-index: 25;
+  }
+  #overlay-screen h1 { color: #ffd700; font-size: 24px; margin-bottom: 8px; text-shadow: 2px 2px #000; }
+  #overlay-screen p { color: #cbd5e1; font-size: 13px; line-height: 1.55; max-width: 480px; margin-bottom: 18px; }
+  .start-btn {
+    padding: 12px 26px; font-size: 15px; font-weight: bold; color: #fff;
+    background: #2563eb; border: 2px solid #fff; border-radius: 6px; cursor: pointer;
+  }
+  .start-btn:hover { background: #1d4ed8; }
+
+  /* 모바일 & 마우스 겸용 가상 컨트롤러 */
+  #virtual-pad {
+    width: 100%; max-width: 640px; margin-top: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e293b; border: 2px solid #475569; border-radius: 8px; padding: 10px 18px;
+  }
+  .dpad {
+    display: grid; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 40px); gap: 4px;
+  }
+  .pad-btn {
+    background: #334155; color: #fff; border: 2px solid #94a3b8; border-radius: 6px;
+    font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
+  .pad-btn:active { background: #2563eb; border-color: #fff; }
+  .action-pads { display: flex; gap: 10px; }
+  .act-btn {
+    padding: 12px 16px; font-size: 13px; font-weight: bold; border-radius: 8px;
+    border: 2px solid #fff; color: #fff; cursor: pointer; touch-action: manipulation;
+  }
+  .btn-a { background: #2563eb; }
+  .btn-b { background: #d97706; }
+  .controls-hint { margin-top: 6px; font-size: 11px; color: #94a3b8; text-align: center; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="world-canvas" width="640" height="480"></canvas>
+
+  <div id="hud" class="ui-box">
+    <div id="party-status"></div>
+    <div class="gold-bar">
+      <span>💰 <span id="p-gold">50</span> G</span>
+      <span>Lv.<span id="p-lv">1</span> (EXP <span id="p-exp">0</span>/<span id="p-nextexp">20</span>)</span>
+    </div>
+  </div>
+
+  <div id="quest-box" class="ui-box">
+    <strong>[현재 목표]</strong><br>
+    <span id="quest-text">동남쪽 엘프의 숲 성소로 이동하자.</span>
+  </div>
+
+  <div id="top-controls">
+    <button class="mini-btn" onclick="openInventory()">🎒 가방(I)</button>
+    <button class="mini-btn" id="bgm-btn" onclick="toggleAudio()">🔊 소리 ON</button>
+  </div>
+
+  <div id="dialog-box" class="ui-box" onclick="advanceDialog()">
+    <div>
+      <div id="dialog-speaker">시스템</div>
+      <div id="dialog-text">텍스트</div>
+    </div>
+    <div id="dialog-next">▼ [Space / 확인 버튼] 계속</div>
+  </div>
+
+  <div id="modal-ui">
+    <div id="modal-title">상점 / 인벤토리</div>
+    <div id="modal-list"></div>
+    <button class="start-btn" style="padding:7px; font-size:13px;" onclick="closeModal()">닫기</button>
+  </div>
+
+  <div id="battle-ui">
+    <div id="battle-stage">
+      <div id="party-sprites"></div>
+      <div id="enemy-area">
+        <canvas id="enemy-canvas" width="16" height="16"></canvas>
+        <div id="enemy-info">
+          <strong id="e-name">슬라임</strong> | HP: <span id="e-hp">20</span>/<span id="e-maxhp">20</span>
+        </div>
+      </div>
+    </div>
+    <div id="battle-bottom">
+      <div id="battle-log"></div>
+      <div id="battle-commands">
+        <div id="turn-indicator">유진의 차례</div>
+        <div id="cmd-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-screen">
+    <h1 id="ov-title">아르카디아 연대기</h1>
+    <p id="ov-desc">평범한 일상을 보내던 당신은 눈을 뜨자마자 낯선 판타지 대륙의 초원에 떨어졌습니다.<br>동료들과 함께 3인 파티를 결성하고 장비를 강화해 마왕성의 진실에 다가가세요.</p>
+    <button class="start-btn" id="ov-btn" onclick="startGame()">모험 시작하기</button>
+  </div>
+</div>
+
+<!-- PC 마우스 & 모바일 터치 겸용 가상 패드 -->
+<div id="virtual-pad">
+  <div class="dpad">
+    <div></div>
+    <button class="pad-btn" onclick="movePlayer(0, -1)">▲</button>
+    <div></div>
+    <button class="pad-btn" onclick="movePlayer(-1, 0)">◀</button>
+    <button class="pad-btn" style="font-size:11px;" onclick="handleActionKey()">OK</button>
+    <button class="pad-btn" onclick="movePlayer(1, 0)">▶</button>
+    <div></div>
+    <button class="pad-btn" onclick="movePlayer(0, 1)">▼</button>
+    <div></div>
+  </div>
+  <div class="action-pads">
+    <button class="act-btn btn-b" onclick="openInventory()">🎒 가방 (I)</button>
+    <button class="act-btn btn-a" onclick="handleActionKey()">💬 조사/확인</button>
+  </div>
+</div>
+
+<div class="controls-hint">PC 키보드(방향키/WASD, Space, I) 및 하단 터치 버튼 모두 사용 가능</div>
+
+<script>
+// ==========================================
+// 1. 8비트 Web Audio 사운드 엔진
+// ==========================================
+let audioCtx = null;
+let isMuted = false;
+let bgmTimer = null;
+let bgmStep = 0;
+let currentBgmMode = "NONE";
+
+function initAudio() {
+  if (!audioCtx) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) audioCtx = new AudioContext();
+  }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+
+function playTone(freq, duration, type = "square", vol = 0.05) {
+  if (isMuted || !audioCtx) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+
+const SFX = {
+  step: () => playTone(140, 0.04, "triangle", 0.02),
+  hit: () => { playTone(180, 0.08, "sawtooth", 0.07); setTimeout(() => playTone(110, 0.12, "square", 0.07), 50); },
+  magic: () => { playTone(520, 0.1, "sine", 0.06); setTimeout(() => playTone(780, 0.16, "triangle", 0.06), 70); },
+  heal: () => { playTone(440, 0.1, "sine", 0.06); setTimeout(() => playTone(660, 0.18, "sine", 0.06), 90); },
+  coin: () => { playTone(987, 0.07, "square", 0.05); setTimeout(() => playTone(1318, 0.16, "square", 0.05), 70); },
+  levelup: () => [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => playTone(f, 0.14, "square", 0.06), i * 90))
+};
+
+const FIELD_MELODY = [261.6, 329.6, 392.0, 329.6, 293.7, 349.2, 440.0, 349.2, 261.6, 329.6, 392.0, 523.3, 493.9, 392.0, 329.6, 293.7];
+const BATTLE_MELODY = [164.8, 164.8, 196.0, 220.0, 164.8, 164.8, 246.9, 220.0, 196.0, 196.0, 220.0, 261.6, 246.9, 220.0, 196.0, 146.8];
+
+function setBGM(mode) {
+  if (currentBgmMode === mode) return;
+  currentBgmMode = mode;
+  if (bgmTimer) clearInterval(bgmTimer);
+  bgmStep = 0;
+  if (mode === "NONE") return;
+  const speed = mode === "BATTLE" ? 170 : 310;
+  bgmTimer = setInterval(() => {
+    if (isMuted || !audioCtx || gameState === "TITLE" || gameState === "ENDING") return;
+    const notes = mode === "BATTLE" ? BATTLE_MELODY : FIELD_MELODY;
+    playTone(notes[bgmStep % notes.length], mode === "BATTLE" ? 0.13 : 0.24, mode === "BATTLE" ? "sawtooth" : "triangle", 0.025);
+    bgmStep++;
+  }, speed);
+}
+
+function toggleAudio() {
+  initAudio();
+  isMuted = !isMuted;
+  document.getElementById("bgm-btn").innerText = isMuted ? "🔇 소리 OFF" : "🔊 소리 ON";
+}
+
+// ==========================================
+// 2. 도트 스프라이트 데이터 (16x16)
+// ==========================================
+const PALETTE = {
+  '.': null, 'K': '#111111', 'W': '#ffffff', 'S': '#ffccaa',
+  'H': '#3b2f2f', 'B': '#2563eb', 'R': '#dc2626', 'G': '#16a34a',
+  'L': '#86efac', 'Y': '#facc15', 'P': '#9333ea', 'C': '#64748b',
+  'T': '#78350f', 'A': '#38bdf8'
+};
+
+const SPRITES = {
+  hero: [
+    "....HHHHHH......","...HHHHHHHH.....","...HSSSSSSH.....","...SKSSSSKS.....",
+    "....SSSSSS......","...RBBBBBBBR....","..RRBBBBBBBRR...","..R.BBBBBB.CR...",
+    "....BBBBBB.C....","....BBBBBB.C....","....KK..KK......","...KKK..KKK....."
+  ],
+  elf: [
+    "....YYYYYY......","...YYYYYYYY.....","..YYSSSSSSYY....","..Y.SKSSKS.Y....",
+    "....SSSSSS......","....GGGGGG......","...GGGGGGGG.....","...G.GGGG.G.....",
+    ".....GGGG.......",".....GGGG.......",".....KK.KK......","....KK...KK....."
+  ],
+  knightAlly: [
+    "....CCCCCC......","...CCCCCCCC.....","...CSKSSKSC.....","....SSSSSS......",
+    "...BCCCCCCCCB...","..BBCCCCCCCCBB..","..B.CCCCCCCC.W..","....CCCCCCCC.W..",
+    "....CC....CC....","...KKK....KKK..."
+  ],
+  slime: [
+    "................","................","......GGGG......","....GGGGGGGG....",
+    "...GLLGGGGGGG...","..GLLGGGGGGGGG..",".GGGGKGGGGKGGGG.",".GGGGKGGGGKGGGG.",
+    ".GGGGGGGGGGGGGG.","..GGGGGGGGGGGG..","...KKKKKKKKKK...","................"
+  ],
+  goblin: [
+    "....GGGGGG......","..GGGGGGGGGG....","...GRGGRGGG.....","....GGGGGG......",
+    "....TTTTTT......","...TTTTTTTT.....","..C.TTTTTT.T....","..C.TTTTTT......",
+    "....TT..TT......","...KK....KK....."
+  ],
+  knight: [
+    ".....CCCCC......","....CCCCCCC.....","....CKCCCKC.....","....CCCCCCC.....",
+    "...CCCCCCCCC....","..CCCCCCCCCCC...","..Y.CCCCCCC.Y...","....CCCCCCC.....",
+    "....CC...CC.....","...KK.....KK...."
+  ],
+  demonLord: [
+    "..Y..PPPP..Y....",".YY.PPPPPP.YY...","..Y.PRPPPR.Y....","....PPPPPP......",
+    "..RRRRRRRRRR....",".RRRRPPPPPPPP...",".R.PPPPPPPPPP.R.","R..PPPPPPPPPP..R",
+    "...PPPPPPPPPP...", "....PP....PP....","...KKK....KKK..."
+  ]
+};
+
+// ==========================================
+// 3. 월드맵 (20x15 타일)
+// ==========================================
+const MAP_W = 20, MAP_H = 15;
+const WORLD_MAP = [
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,6,6,6,6,6,4],
+  [4,0,0,0,0,0,2,2,0,0,0,0,4,6,6,6,6,5,6,4],
+  [4,0,0,0,0,0,2,2,0,0,3,3,3,6,6,6,6,3,6,4],
+  [4,0,0,3,3,3,3,3,3,3,3,0,4,4,6,6,3,3,6,4],
+  [4,0,0,3,0,0,2,2,0,0,3,0,0,4,4,4,4,4,4,4],
+  [4,0,5,3,0,0,2,2,0,0,3,5,0,0,0,1,1,1,1,4],
+  [4,0,0,3,0,0,0,0,0,0,3,3,3,3,1,1,1,1,1,4],
+  [4,0,0,3,3,3,3,3,3,0,0,0,0,3,1,1,1,1,1,4],
+  [4,0,0,0,0,0,0,0,3,0,0,0,0,3,1,1,1,5,1,4],
+  [4,1,1,0,0,0,0,0,3,3,3,3,3,3,1,1,1,1,1,4],
+  [4,1,1,1,0,0,2,2,2,0,0,0,0,0,0,1,1,1,1,4],
+  [4,1,1,1,0,0,2,2,2,0,0,0,0,0,0,0,1,1,0,4],
+  [4,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,0,0,0,4],
+  [4,0,0,0,0,0,0,0,0,0,0,4,4,0,0,0,0,0,0,4],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]
+];
+
+const LOCATIONS = {
+  "2,5": { name: "시작의 마을", type: "town_start" },
+  "17,8": { name: "엘프의 숲 성소", type: "elf_event" },
+  "11,5": { name: "아르카디아 왕국", type: "kingdom_event" },
+  "17,1": { name: "북부 마왕성", type: "boss_event" }
+};
+
+// ==========================================
+// 4. 게임 상태, 3인 파티, 인벤토리
+// ==========================================
+let gameState = "TITLE";
+let player = {
+  x: 2, y: 6, lv: 1, exp: 0, nextExp: 20, gold: 60,
+  weaponLv: 1, armorLv: 1, storyFlag: 0,
+  inventory: { potion: 2, ether: 1 }
+};
+
+let party = [
+  { id: "hero", name: "유진", role: "이세계인", sprite: "hero", hp: 55, maxHp: 55, mp: 25, maxMp: 25, atk: 12, matk: 18, def: 4, unlocked: true },
+  { id: "elf", name: "리아", role: "엘프 궁수", sprite: "elf", hp: 45, maxHp: 45, mp: 30, maxMp: 30, atk: 14, matk: 16, def: 3, unlocked: false },
+  { id: "knight", name: "가렌", role: "왕국 기사", sprite: "knightAlly", hp: 75, maxHp: 75, mp: 15, maxMp: 15, atk: 16, matk: 8, def: 7, unlocked: false }
+];
+
+let dialogQueue = [];
+let onDialogEnd = null;
+let currentEnemy = null;
+let isBossBattle = false;
+let activeTurnIndex = 0;
+let battleTurnLock = false;
+let garenGuard = false;
+
+const canvas = document.getElementById("world-canvas");
+const ctx = canvas.getContext("2d");
+const TILE_SIZE = 32;
+
+// ==========================================
+// 5. 렌더링 & UI 업데이트
+// ==========================================
+function drawSprite(targetCtx, spriteKey, dx, dy, size) {
+  const grid = SPRITES[spriteKey];
+  if (!grid) return;
+  const pixelSize = size / 16;
+  const offsetY = Math.floor((16 - grid.length) / 2);
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      const ch = grid[r][c];
+      if (PALETTE[ch]) {
+        targetCtx.fillStyle = PALETTE[ch];
+        targetCtx.fillRect(dx + c * pixelSize, dy + (r + offsetY) * pixelSize, Math.ceil(pixelSize), Math.ceil(pixelSize));
+      }
+    }
+  }
+}
+
+function renderWorld() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let y = 0; y < MAP_H; y++) {
+    for (let x = 0; x < MAP_W; x++) {
+      const t = WORLD_MAP[y][x];
+      const px = x * TILE_SIZE, py = y * TILE_SIZE;
+      if (t === 0) ctx.fillStyle = "#4ade80";
+      else if (t === 1) ctx.fillStyle = "#166534";
+      else if (t === 2) ctx.fillStyle = "#0284c7";
+      else if (t === 3) ctx.fillStyle = "#d97706";
+      else if (t === 4) ctx.fillStyle = "#475569";
+      else if (t === 5) ctx.fillStyle = "#facc15";
+      else if (t === 6) ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+
+      ctx.strokeStyle = "rgba(0,0,0,0.1)";
+      ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
+      if (t === 1) {
+        ctx.fillStyle = "#14532d"; ctx.fillRect(px + 8, py + 6, 16, 14);
+        ctx.fillStyle = "#78350f"; ctx.fillRect(px + 14, py + 20, 4, 8);
+      } else if (t === 5) {
+        ctx.fillStyle = "#dc2626"; ctx.fillRect(px + 6, py + 6, 20, 10);
+        ctx.fillStyle = "#fff"; ctx.fillRect(px + 8, py + 16, 16, 12);
+      }
+    }
+  }
+  if (!party[1].unlocked) drawSprite(ctx, "elf", 17 * TILE_SIZE, 8 * TILE_SIZE, TILE_SIZE);
+  if (!party[2].unlocked) drawSprite(ctx, "knightAlly", 11 * TILE_SIZE, 5 * TILE_SIZE, TILE_SIZE);
+  drawSprite(ctx, "demonLord", 17 * TILE_SIZE, 1 * TILE_SIZE, TILE_SIZE);
+  drawSprite(ctx, "hero", player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE);
+}
+
+function updateHUD() {
+  const statusDiv = document.getElementById("party-status");
+  statusDiv.innerHTML = party.filter(m => m.unlocked).map(m => `
+    <div class="party-row">
+      <strong>${m.name}</strong> <span style="color:#94a3b8">(${m.role})</span><br>
+      HP <span style="color:#4ade80">${m.hp}/${m.maxHp}</span> | MP <span style="color:#38bdf8">${m.mp}/${m.maxMp}</span>
+    </div>
+  `).join("");
+
+  document.getElementById("p-gold").innerText = player.gold;
+  document.getElementById("p-lv").innerText = player.lv;
+  document.getElementById("p-exp").innerText = player.exp;
+  document.getElementById("p-nextexp").innerText = player.nextExp;
+
+  const qText = document.getElementById("quest-text");
+  if (player.storyFlag === 0) qText.innerText = "동남쪽 '엘프의 숲 성소'로 이동해 단서를 찾자.";
+  else if (player.storyFlag === 1) qText.innerText = "북쪽 '아르카디아 왕국'에서 기사 가렌과 합류하자.";
+  else qText.innerText = "북동쪽 설원 너머 '마왕성'으로 진격하자! (권장 Lv.4+)";
+}
+
+// ==========================================
+// 6. 상점 및 인벤토리
+// ==========================================
+function openTownShop(townName) {
+  gameState = "MODAL";
+  document.getElementById("modal-title").innerText = `🏪 ${townName} 상점 & 여관 (보유: ${player.gold} G)`;
+  const wCost = player.weaponLv * 45;
+  const aCost = player.armorLv * 40;
+
+  document.getElementById("modal-list").innerHTML = `
+    <div class="item-row">
+      <div><strong>🛏️ 여관 휴식</strong><br><span style="color:#94a3b8">파티 전원 HP/MP 완전 회복</span></div>
+      <button class="item-btn" onclick="useInn(15)" ${player.gold < 15 ? 'disabled' : ''}>15 G</button>
+    </div>
+    <div class="item-row">
+      <div><strong>🧪 체력 포션 (보유: ${player.inventory.potion}개)</strong><br><span style="color:#94a3b8">아군 1명 HP 45 회복</span></div>
+      <button class="item-btn" onclick="buyItem('potion', 20)" ${player.gold < 20 ? 'disabled' : ''}>20 G</button>
+    </div>
+    <div class="item-row">
+      <div><strong>💧 마력 에테르 (보유: ${player.inventory.ether}개)</strong><br><span style="color:#94a3b8">아군 1명 MP 20 회복</span></div>
+      <button class="item-btn" onclick="buyItem('ether', 25)" ${player.gold < 25 ? 'disabled' : ''}>25 G</button>
+    </div>
+    <div class="item-row">
+      <div><strong>⚔️ 파티 무기 연마 (현재 Lv.${player.weaponLv})</strong><br><span style="color:#94a3b8">전원 공격력·마력 +4 영구 상승</span></div>
+      <button class="item-btn" onclick="upgradeGear('weapon', ${wCost})" ${player.gold < wCost ? 'disabled' : ''}>${wCost} G</button>
+    </div>
+    <div class="item-row">
+      <div><strong>🛡️ 파티 방어구 강화 (현재 Lv.${player.armorLv})</strong><br><span style="color:#94a3b8">전원 방어력 +3, 최대 HP +10</span></div>
+      <button class="item-btn" onclick="upgradeGear('armor', ${aCost})" ${player.gold < aCost ? 'disabled' : ''}>${aCost} G</button>
+    </div>
+  `;
+  document.getElementById("modal-ui").style.display = "flex";
+}
+
+function useInn(cost) {
+  if (player.gold < cost) return;
+  player.gold -= cost;
+  party.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp; });
+  SFX.heal();
+  updateHUD();
+  openTownShop("마을");
+}
+
+function buyItem(type, cost) {
+  if (player.gold < cost) return;
+  player.gold -= cost;
+  player.inventory[type]++;
+  SFX.coin();
+  updateHUD();
+  openTownShop("마을");
+}
+
+function upgradeGear(kind, cost) {
+  if (player.gold < cost) return;
+  player.gold -= cost;
+  if (kind === "weapon") {
+    player.weaponLv++;
+    party.forEach(m => { m.atk += 4; m.matk += 4; });
+  } else {
+    player.armorLv++;
+    party.forEach(m => { m.def += 3; m.maxHp += 10; m.hp += 10; });
+  }
+  SFX.levelup();
+  updateHUD();
+  openTownShop("대장간");
+}
+
+function openInventory() {
+  if (gameState !== "WORLD") return;
+  gameState = "MODAL";
+  document.getElementById("modal-title").innerText = `🎒 파티 가방 & 장비 현황 (무기 Lv.${player.weaponLv} / 방어구 Lv.${player.armorLv})`;
+  document.getElementById("modal-list").innerHTML = `
+    <div class="item-row">
+      <div><strong>🧪 체력 포션 (${player.inventory.potion}개)</strong><br><span style="color:#94a3b8">부상당한 파티원 HP 45 회복</span></div>
+      <button class="item-btn" onclick="useFieldItem('potion')" ${player.inventory.potion <= 0 ? 'disabled' : ''}>사용</button>
+    </div>
+    <div class="item-row">
+      <div><strong>💧 마력 에테르 (${player.inventory.ether}개)</strong><br><span style="color:#94a3b8">파티원 전원 MP 15 회복</span></div>
+      <button class="item-btn" onclick="useFieldItem('ether')" ${player.inventory.ether <= 0 ? 'disabled' : ''}>사용</button>
+    </div>
+  `;
+  document.getElementById("modal-ui").style.display = "flex";
+}
+
+function useFieldItem(type) {
+  if (type === "potion" && player.inventory.potion > 0) {
+    const target = party.filter(m => m.unlocked && m.hp < m.maxHp).sort((a,b) => a.hp - b.hp)[0];
+    if (!target) { alert("체력이 줄어든 파티원이 없습니다."); return; }
+    player.inventory.potion--;
+    target.hp = Math.min(target.maxHp, target.hp + 45);
+    SFX.heal();
+  } else if (type === "ether" && player.inventory.ether > 0) {
+    player.inventory.ether--;
+    party.filter(m => m.unlocked).forEach(m => m.mp = Math.min(m.maxMp, m.mp + 15));
+    SFX.magic();
+  }
+  updateHUD();
+  openInventory();
+}
+
+function closeModal() {
+  document.getElementById("modal-ui").style.display = "none";
+  gameState = "WORLD";
+}
+
+// ==========================================
+// 7. 스토리 및 이벤트
+// ==========================================
+function startDialog(lines, callback = null) {
+  gameState = "DIALOG";
+  dialogQueue = [...lines];
+  onDialogEnd = callback;
+  document.getElementById("dialog-box").style.display = "flex";
+  advanceDialog();
+}
+
+function advanceDialog() {
+  if (gameState !== "DIALOG") return;
+  if (dialogQueue.length === 0) {
+    document.getElementById("dialog-box").style.display = "none";
+    gameState = "WORLD";
+    if (onDialogEnd) { const cb = onDialogEnd; onDialogEnd = null; cb(); }
+    return;
+  }
+  const current = dialogQueue.shift();
+  document.getElementById("dialog-speaker").innerText = current.speaker;
+  document.getElementById("dialog-text").innerText = current.text;
+}
+
+function startGame() {
+  initAudio();
+  document.getElementById("overlay-screen").style.display = "none";
+  updateHUD();
+  renderWorld();
+  setBGM("FIELD");
+  startDialog([
+    { speaker: "유진 (주인공)", text: "여긴 어디지...? 분명 방금 전까지 퇴근길 지하철이었는데." },
+    { speaker: "시스템", text: "낯선 초원 한가운데에 떨어졌습니다. 북쪽 '시작의 마을'에서 상점을 이용하거나 동남쪽 숲으로 이동하세요." }
+  ]);
+}
+
+function checkTileEvent() {
+  const key = `${player.x},${player.y}`;
+  const loc = LOCATIONS[key];
+  if (!loc) return false;
+
+  if (loc.type === "town_start") {
+    openTownShop("시작의 마을");
+    return true;
+  }
+
+  if (loc.type === "elf_event") {
+    if (player.storyFlag === 0) {
+      player.storyFlag = 1;
+      party[1].unlocked = true;
+      SFX.levelup();
+      updateHUD(); renderWorld();
+      startDialog([
+        { speaker: "엘프 궁수 리아", text: "당신, 이 세계의 마력 파장이 전혀 없는 '이세계인'이군요! 마왕군이 당신 같은 순수한 영혼을 노리고 있습니다." },
+        { speaker: "엘프 궁수 리아", text: "혼자서는 위험합니다. 저도 함께 동행하며 북쪽 아르카디아 왕국까지 안내하겠습니다!" },
+        { speaker: "시스템", text: "🎉 엘프 궁수 '리아'가 파티에 합류했습니다! (전투 시 2인 파티로 행동)" }
+      ]);
+    } else {
+      startDialog([{ speaker: "엘프의 성소", text: "세계수의 기운으로 파티의 상처가 치유되었습니다!" }], () => {
+        party.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp; });
+        SFX.heal(); updateHUD();
+      });
+    }
+    return true;
+  }
+
+  if (loc.type === "kingdom_event") {
+    if (player.storyFlag < 1) {
+      startDialog([{ speaker: "왕국 근위병", text: "먼저 동남쪽 엘프의 숲에서 정찰병 리아와 접촉하고 오게." }]);
+    } else if (player.storyFlag === 1) {
+      player.storyFlag = 2;
+      party[2].unlocked = true;
+      SFX.levelup();
+      updateHUD(); renderWorld();
+      startDialog([
+        { speaker: "왕국 기사 가렌", text: "리아의 소개로 온 이세계인이군! 나도 마왕 토벌대에 합류해 전위에서 방패가 되어주마!" },
+        { speaker: "시스템", text: "🎉 왕국 기사 '가렌'이 파티에 합류했습니다! (3인 완전체 파티 결성)" }
+      ], () => openTownShop("아르카디아 왕국"));
+    } else {
+      openTownShop("아르카디아 왕국");
+    }
+    return true;
+  }
+
+  if (loc.type === "boss_event") {
+    if (player.storyFlag < 2) {
+      startDialog([{ speaker: "결계의 목소리", text: "강력한 마력 결계다. 왕국에서 기사 가렌과 합류한 뒤 다시 오자." }]);
+      return true;
+    }
+    startDialog([
+      { speaker: "마왕 아르카스", text: "드디어 왔군, 이세계의 순수한 영혼이여! 이 세계는 마법 남용으로 차원의 틈이 찢어져 붕괴 직전이다!" },
+      { speaker: "마왕 아르카스", text: "차원을 봉인하려면 외부 차원의 순수한 영혼을 '쐐기'로 고정해야 한다! 소환 술식의 오차로 네가 초원에 떨어졌을 뿐!" },
+      { speaker: "유진 (주인공)", text: "누군가의 일방적인 희생으로 유지되는 세계는 거부한다! 우리 셋의 힘으로 다른 해답을 찾겠어!" }
+    ], () => {
+      startBattle({ name: "고대 관리자 마왕 아르카스", sprite: "demonLord", hp: 220, maxHp: 220, atk: 24, exp: 999, gold: 500 }, true);
+    });
+    return true;
+  }
+  return false;
+}
+
+// ==========================================
+// 8. 3인 파티 턴제 전투 시스템
+// ==========================================
+function triggerRandomEncounter(tileType) {
+  if (tileType === 3 || tileType === 5) return;
+  const rate = tileType === 1 ? 0.2 : (tileType === 6 ? 0.24 : 0.13);
+  if (Math.random() > rate) return;
+
+  let pool = [];
+  if (tileType === 0) pool = [{ name: "초원 슬라임", sprite: "slime", hp: 32, maxHp: 32, atk: 7, exp: 14, gold: 15 }];
+  else if (tileType === 1) pool = [
+    { name: "숲 고블린", sprite: "goblin", hp: 55, maxHp: 55, atk: 12, exp: 26, gold: 25 },
+    { name: "독 슬라임", sprite: "slime", hp: 48, maxHp: 48, atk: 10, exp: 22, gold: 20 }
+  ];
+  else if (tileType === 6) pool = [{ name: "마왕군 흑기사", sprite: "knight", hp: 105, maxHp: 105, atk: 18, exp: 55, gold: 45 }];
+
+  startBattle(JSON.parse(JSON.stringify(pool[Math.floor(Math.random() * pool.length)])), false);
+}
+
+function startBattle(enemy, isBoss) {
+  gameState = "BATTLE";
+  currentEnemy = enemy;
+  isBossBattle = isBoss;
+  garenGuard = false;
+  setBGM("BATTLE");
+
+  document.getElementById("battle-ui").style.display = "flex";
+  document.getElementById("battle-log").innerHTML = `<div>⚠️ <strong>${enemy.name}</strong>이(가) 나타났다!</div>`;
+
+  activeTurnIndex = -1;
+  nextAllyTurn();
+}
+
+function renderBattleState() {
+  document.getElementById("e-name").innerText = currentEnemy.name;
+  document.getElementById("e-hp").innerText = Math.max(0, currentEnemy.hp);
+  document.getElementById("e-maxhp").innerText = currentEnemy.maxHp;
+
+  const eCanvas = document.getElementById("enemy-canvas");
+  const eCtx = eCanvas.getContext("2d");
+  eCtx.clearRect(0, 0, 16, 16);
+  drawSprite(eCtx, currentEnemy.sprite, 0, 0, 16);
+
+  const pDiv = document.getElementById("party-sprites");
+  pDiv.innerHTML = "";
+  party.forEach((m, idx) => {
+    if (!m.unlocked) return;
+    const unit = document.createElement("div");
+    unit.className = "ally-unit" + (idx === activeTurnIndex ? " active-turn" : "");
+    const c = document.createElement("canvas");
+    c.width = 16; c.height = 16; c.className = "sprite-box";
+    drawSprite(c.getContext("2d"), m.sprite, 0, 0, 16);
+    unit.appendChild(c);
+    const info = document.createElement("div");
+    info.innerHTML = `<strong>${m.name}</strong><br>HP ${m.hp}/${m.maxHp} | MP ${m.mp}`;
+    unit.appendChild(info);
+    pDiv.appendChild(unit);
+  });
+  updateHUD();
+}
+
+function nextAllyTurn() {
+  activeTurnIndex++;
+  while (activeTurnIndex < party.length && (!party[activeTurnIndex].unlocked || party[activeTurnIndex].hp <= 0)) {
+    activeTurnIndex++;
+  }
+  if (activeTurnIndex >= party.length) {
+    enemyTurn();
+    return;
+  }
+
+  battleTurnLock = false;
+  const actor = party[activeTurnIndex];
+  document.getElementById("turn-indicator").innerText = `▶ ${actor.name} (${actor.role})의 차례`;
+  renderBattleState();
+
+  const grid = document.getElementById("cmd-grid");
+  if (actor.id === "hero") {
+    grid.innerHTML = `
+      <button class="cmd-btn" onclick="execSkill('hero_atk')">⚔️ 검격</button>
+      <button class="cmd-btn" onclick="execSkill('hero_fire')">🔥 파이어(5)</button>
+      <button class="cmd-btn" onclick="execSkill('potion')">🧪 포션(${player.inventory.potion})</button>
+      <button class="cmd-btn" onclick="execSkill('run')">🏃 도망</button>
+    `;
+  } else if (actor.id === "elf") {
+    grid.innerHTML = `
+      <button class="cmd-btn" onclick="execSkill('elf_shot')">🏹 정밀사격</button>
+      <button class="cmd-btn" onclick="execSkill('elf_wind')">🌪️ 질풍(6)</button>
+      <button class="cmd-btn" onclick="execSkill('elf_heal')">💚 전체치유(8)</button>
+      <button class="cmd-btn" onclick="execSkill('potion')">🧪 포션(${player.inventory.potion})</button>
+    `;
+  } else if (actor.id === "knight") {
+    grid.innerHTML = `
+      <button class="cmd-btn" onclick="execSkill('kni_atk')">🗡️ 강타</button>
+      <button class="cmd-btn" onclick="execSkill('kni_slash')">⚡ 왕가일섬(6)</button>
+      <button class="cmd-btn" onclick="execSkill('kni_guard')">🛡️ 철벽수호</button>
+      <button class="cmd-btn" onclick="execSkill('potion')">🧪 포션(${player.inventory.potion})</button>
+    `;
+  }
+}
+
+function addBattleLog(msg) {
+  const log = document.getElementById("battle-log");
+  log.innerHTML += `<div>${msg}</div>`;
+  log.scrollTop = log.scrollHeight;
+}
+
+function execSkill(skill) {
+  if (battleTurnLock || gameState !== "BATTLE") return;
+  const actor = party[activeTurnIndex];
+
+  if (skill === "hero_atk") {
+    const dmg = Math.max(1, actor.atk + Math.floor(Math.random() * 4));
+    currentEnemy.hp -= dmg; SFX.hit();
+    addBattleLog(`⚔️ 유진의 검격! <strong>${dmg}</strong> 피해!`);
+  } else if (skill === "hero_fire") {
+    if (actor.mp < 5) { addBattleLog("❌ MP 부족!"); return; }
+    actor.mp -= 5;
+    const dmg = actor.matk + Math.floor(Math.random() * 7);
+    currentEnemy.hp -= dmg; SFX.magic();
+    addBattleLog(`🔥 유진의 파이어! <strong>${dmg}</strong> 화염 피해!`);
+  } else if (skill === "elf_shot") {
+    const dmg = Math.max(1, actor.atk + Math.floor(Math.random() * 6));
+    currentEnemy.hp -= dmg; SFX.hit();
+    addBattleLog(`🏹 리아의 정밀 사격! <strong>${dmg}</strong> 피해!`);
+  } else if (skill === "elf_wind") {
+    if (actor.mp < 6) { addBattleLog("❌ MP 부족!"); return; }
+    actor.mp -= 6;
+    const dmg = actor.matk + 6;
+    currentEnemy.hp -= dmg; SFX.magic();
+    addBattleLog(`🌪️ 리아의 질풍 마법! <strong>${dmg}</strong> 피해!`);
+  } else if (skill === "elf_heal") {
+    if (actor.mp < 8) { addBattleLog("❌ MP 부족!"); return; }
+    actor.mp -= 8; SFX.heal();
+    party.filter(m => m.unlocked && m.hp > 0).forEach(m => m.hp = Math.min(m.maxHp, m.hp + 28));
+    addBattleLog(`💚 리아의 정령 치유! 파티 전원 HP +28!`);
+  } else if (skill === "kni_atk") {
+    const dmg = Math.max(1, actor.atk + Math.floor(Math.random() * 4));
+    currentEnemy.hp -= dmg; SFX.hit();
+    addBattleLog(`🗡️ 가렌의 대검 강타! <strong>${dmg}</strong> 피해!`);
+  } else if (skill === "kni_slash") {
+    if (actor.mp < 6) { addBattleLog("❌ MP 부족!"); return; }
+    actor.mp -= 6;
+    const dmg = Math.floor(actor.atk * 1.65);
+    currentEnemy.hp -= dmg; SFX.hit();
+    addBattleLog(`⚡ 가렌의 왕가 일섬! <strong>${dmg}</strong> 치명타!`);
+  } else if (skill === "kni_guard") {
+    garenGuard = true; SFX.heal();
+    addBattleLog(`🛡️ 가렌이 방패를 들어 이번 턴 파티 피해를 절반으로 줄입니다!`);
+  } else if (skill === "potion") {
+    if (player.inventory.potion <= 0) { addBattleLog("❌ 포션이 없습니다!"); return; }
+    player.inventory.potion--; SFX.heal();
+    const target = party.filter(m => m.unlocked && m.hp > 0).sort((a,b) => a.hp - b.hp)[0];
+    target.hp = Math.min(target.maxHp, target.hp + 45);
+    addBattleLog(`🧪 ${target.name}에게 포션 사용! HP +45!`);
+  } else if (skill === "run") {
+    if (isBossBattle) { addBattleLog("🚫 마왕전에서는 도망칠 수 없습니다!"); return; }
+    if (Math.random() < 0.7) {
+      addBattleLog("🏃 파티가 무사히 도망쳤습니다!");
+      battleTurnLock = true;
+      setTimeout(endBattle, 650);
+      return;
+    } else {
+      addBattleLog("💦 도망에 실패했습니다!");
+    }
+  }
+
+  battleTurnLock = true;
+  renderBattleState();
+
+  if (currentEnemy.hp <= 0) {
+    setTimeout(() => {
+      SFX.coin();
+      addBattleLog(`🎉 <strong>${currentEnemy.name}</strong> 격파! (EXP +${currentEnemy.exp}, +${currentEnemy.gold}G)`);
+      player.exp += currentEnemy.exp;
+      player.gold += currentEnemy.gold;
+      checkLevelUp();
+      renderBattleState();
+      setTimeout(() => {
+        endBattle();
+        if (isBossBattle) triggerEnding();
+      }, 1100);
+    }, 450);
+    return;
+  }
+
+  setTimeout(nextAllyTurn, 420);
+}
+
+function enemyTurn() {
+  document.getElementById("turn-indicator").innerText = `⚠️ ${currentEnemy.name}의 공격!`;
+  const alive = party.filter(m => m.unlocked && m.hp > 0);
+  const target = alive[Math.floor(Math.random() * alive.length)];
+
+  setTimeout(() => {
+    let rawDmg = Math.max(2, currentEnemy.atk - Math.floor(target.def * 0.5) + Math.floor(Math.random() * 4));
+    if (garenGuard) rawDmg = Math.max(1, Math.floor(rawDmg * 0.5));
+    garenGuard = false;
+
+    target.hp = Math.max(0, target.hp - rawDmg);
+    SFX.hit();
+    addBattleLog(`💥 ${currentEnemy.name}의 공격! <strong>${target.name}</strong>에게 <strong>${rawDmg}</strong> 피해!`);
+    renderBattleState();
+
+    if (party.filter(m => m.unlocked && m.hp > 0).length === 0) {
+      setTimeout(() => {
+        alert("파티가 전멸했습니다... 시작의 마을에서 부활합니다.");
+        player.x = 2; player.y = 6;
+        party.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp; });
+        endBattle();
+      }, 650);
+    } else {
+      activeTurnIndex = -1;
+      setTimeout(nextAllyTurn, 500);
+    }
+  }, 500);
+}
+
+function checkLevelUp() {
+  while (player.exp >= player.nextExp) {
+    player.exp -= player.nextExp;
+    player.lv++;
+    player.nextExp = Math.floor(player.nextExp * 1.45);
+    SFX.levelup();
+    party.forEach(m => {
+      m.maxHp += 14; m.maxMp += 5; m.atk += 3; m.matk += 4; m.def += 2;
+      m.hp = m.maxHp; m.mp = m.maxMp;
+    });
+    addBattleLog(`✨ <strong>파티 레벨 업! Lv.${player.lv}</strong> (전원 능력치 상승 & 회복)`);
+  }
+}
+
+function endBattle() {
+  document.getElementById("battle-ui").style.display = "none";
+  gameState = "WORLD";
+  setBGM("FIELD");
+  renderWorld();
+  updateHUD();
+}
+
+function triggerEnding() {
+  gameState = "ENDING";
+  setBGM("FIELD");
+  startDialog([
+    { speaker: "마왕 아르카스", text: "크윽... 이세계인의 순수한 영혼이 마력을 이런 식으로 재설계하다니..." },
+    { speaker: "유진 (주인공)", text: "한 사람의 영혼을 제물로 바치는 대신, 대륙 전체의 마력 순환 회로를 연결해 차원의 틈을 안정시켰어!" },
+    { speaker: "엘프 리아 & 기사 가렌", text: "해냈군요, 유진! 아르카디아 대륙에 진정한 평화가 찾아왔습니다!" }
+  ], () => {
+    const ov = document.getElementById("overlay-screen");
+    document.getElementById("ov-title").innerText = "THE END - 아르카디아의 개척자";
+    document.getElementById("ov-desc").innerHTML =
+      "마왕의 진실을 밝혀내고 동료들과 함께 누구도 희생되지 않는 해답을 찾아낸 유진.<br>" +
+      "원래 세계로 돌아가는 문이 열렸지만, 유진은 소중한 동료들과 함께 새로운 역사를 써 내려가기로 결심합니다.<br><br>" +
+      "<strong>클리어 축하합니다!</strong>";
+    document.getElementById("ov-btn").innerText = "처음부터 다시 플레이";
+    document.getElementById("ov-btn").onclick = () => location.reload();
+    ov.style.display = "flex";
+  });
+}
+
+// ==========================================
+// 9. 통합 입력 제어 (키보드 + 터치/마우스 패드)
+// ==========================================
+function movePlayer(dx, dy) {
+  initAudio();
+  if (gameState !== "WORLD") return;
+  const nx = player.x + dx;
+  const ny = player.y + dy;
+  if (nx < 0 || nx >= MAP_W || ny < 0 || ny >= MAP_H) return;
+  const targetTile = WORLD_MAP[ny][nx];
+  if (targetTile === 2 || targetTile === 4) return;
+
+  player.x = nx;
+  player.y = ny;
+  SFX.step();
+  renderWorld();
+
+  if (!checkTileEvent()) {
+    triggerRandomEncounter(targetTile);
+  }
+}
+
+function handleActionKey() {
+  initAudio();
+  if (gameState === "DIALOG") {
+    advanceDialog();
+  } else if (gameState === "WORLD") {
+    checkTileEvent();
+  }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && gameState === "MODAL") { closeModal(); return; }
+  if (gameState === "DIALOG") {
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); advanceDialog(); }
+    return;
+  }
+  if (gameState !== "WORLD") return;
+
+  if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") { e.preventDefault(); movePlayer(0, -1); }
+  else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") { e.preventDefault(); movePlayer(0, 1); }
+  else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { e.preventDefault(); movePlayer(-1, 0); }
+  else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); movePlayer(1, 0); }
+  else if (e.key === " " || e.key === "Enter") { e.preventDefault(); checkTileEvent(); }
+  else if (e.key === "i" || e.key === "I") { e.preventDefault(); openInventory(); }
+});
+</script>
+</body>
+</html>
