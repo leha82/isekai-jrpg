@@ -9,9 +9,11 @@
 | 프로젝트 ID | `isekai-jrpg` |
 | authDomain | `isekai-jrpg.firebaseapp.com` |
 | 웹 앱 ID | `1:354478953656:web:ad385c633ac5a1d344104d` |
-| 설정값 위치 | `index.html` 맨 아래 module 스크립트의 `firebaseConfig` |
+| 설정값 위치 | `js/config.js` 의 `FIREBASE_CONFIG` (마스터 계정 `MASTER_EMAIL` 도 여기) |
+| 컬렉션 | `saves`(클라우드 세이브), `scriptKeys`(시나리오 키), `admin`(GitHub 토큰) — [08_tech.md](08_tech.md#firebase-연결-구조) |
 | 보안 규칙 원본 | 저장소 루트 [`firestore.rules`](../firestore.rules) |
 | 확인 결과 | 로그인하지 않은 상태의 Firestore 읽기·쓰기는 403 PERMISSION_DENIED로 차단됨 (2026-11-27) |
+| 실사용 확인 | 배포 사이트에서 Google 로그인 성공, 클라우드 저장 성공 (2026-11-27, 사용자 확인) |
 > Firebase 콘솔 화면은 수시로 바뀝니다. 메뉴 이름이 조금 달라도 같은 기능을 찾으면 됩니다.
 
 ## 0. 준비
@@ -87,21 +89,30 @@ const firebaseConfig = {
 ```
 
 - 이 값은 웹페이지에 공개되는 식별자라서 비밀번호가 아니다. 보안은 4번의 규칙이 담당한다.
-- 복사한 값을 개발 담당(Claude)에게 전달하면 `index.html`에 연결한다.
+- 복사한 값을 개발 담당(Claude)에게 전달하면 `js/config.js`에 연결한다.
+
+## 7. 시나리오 스크립트용 추가 설정 (2026-11-27)
+1. **보안 규칙 다시 게시:** 저장소의 [`firestore.rules`](../firestore.rules) 전체를 Firestore → 규칙에 붙여 넣고 **게시**. (`scriptKeys`, `admin` 규칙과 마스터 계정 `isMaster()` 추가됨)
+   - 마스터 계정을 바꾸려면 `firestore.rules` 의 이메일과 `js/config.js` 의 `MASTER_EMAIL` 을 **둘 다** 바꾼다.
+2. **GitHub 토큰:** 관리자 페이지 첫 접속 시 입력 ([11_scenario.md](11_scenario.md#github-토큰-최초-1회))
+3. **첫 업로드:** 관리자 페이지 → `📁 폴더 가져오기` → 로컬 `scenario-src` 선택 → `🔒 암호화 저장 & 업로드`. 이 업로드 전까지 게임은 "시나리오가 아직 업로드되지 않았습니다" 상태다.
 
 ## 6. 설정 완료 체크리스트
 - [x] 프로젝트 생성 (Spark 요금제 유지)
-- [ ] Authentication → Google 사용 설정 — 실제 로그인으로 확인 필요
-- [ ] 승인된 도메인에 `leha82.github.io` 추가 — 배포 사이트 로그인으로 확인 필요
+- [x] Authentication → Google 사용 설정
+- [x] 승인된 도메인에 `leha82.github.io` 추가
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
-- [ ] 보안 규칙 게시 — 로그인 후 저장이 `permission-denied`이면 미게시 상태
-- [x] 웹 앱 등록 후 `firebaseConfig` 전달 → `index.html`에 연결 완료
+- [x] 보안 규칙 게시
+- [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
+- [ ] (시나리오) 새 `firestore.rules` 게시
+- [ ] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드
 
 ## 문제 해결
 로그인에 실패하면 게임 화면에 원인 토스트가 뜨고, F12 콘솔에 `[로그인 실패] <코드>`가 기록된다.
 
 | 증상 | 원인 / 해결 |
 |---|---|
+| 관리자 페이지에서 "서버에서 관리자 권한을 확인하지 못했습니다" | 새 `firestore.rules` 가 게시되지 않음 → 7-1 |
 | `index.html`을 더블클릭해 열었더니 버튼이 `☁️ 사용 불가` | `file://`에서는 Firebase 로그인이 안 됨 → VS Code `F5`(http://localhost:8000) 또는 배포 사이트로 접속 |
 | Live Server(`127.0.0.1:5500`)에서 `auth/unauthorized-domain` | `127.0.0.1`은 `localhost`와 다른 도메인 → 주소를 `localhost:5500`으로 바꾸거나, 승인된 도메인에 `127.0.0.1` 추가 |
 | 배포 사이트에 로그인 버튼이 없음 | 최신 코드가 `main`에 push되지 않음 |

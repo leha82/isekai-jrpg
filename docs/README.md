@@ -16,12 +16,14 @@
 | [07_systems.md](07_systems.md) | 성장(레벨), 경제, 상점, 인벤토리, 세이브/불러오기 |
 | [08_tech.md](08_tech.md) | 코드 구조, 상태 머신, 세이브 데이터 포맷, 그래픽·사운드 엔진 |
 | [09_roadmap.md](09_roadmap.md) | 구현 현황, 다음 마일스톤, 아이디어 백로그 |
-| [10_firebase_setup.md](10_firebase_setup.md) | Firebase 프로젝트 설정 가이드 (클라우드 세이브용) |
+| [10_firebase_setup.md](10_firebase_setup.md) | Firebase 프로젝트 설정 가이드 (클라우드 세이브·시나리오 키) |
+| [11_scenario.md](11_scenario.md) | 시나리오 스크립트 문법, 암호화 구조, 관리자 페이지 사용법 |
 | [reference/arcadia_isekai_jrpg_spec.md](reference/arcadia_isekai_jrpg_spec.md) | 최초 통합 기획서 원본 (수정하지 않고 보관) |
 
 ## 운영 규칙
 
-1. **기준은 코드다.** 문서 수치와 `index.html`이 다르면 둘 중 하나를 고쳐 맞춘다. 문서만 바꾸고 끝내지 않는다.
+1. **기준은 코드와 시나리오 스크립트다.** 문서 수치가 `js/`·`scenario-src/` 와 다르면 둘 중 하나를 고쳐 맞춘다. 문서만 바꾸고 끝내지 않는다.
+   - 이 폴더는 GitHub 에 공개된다. **대사 원문·스포일러성 세부 내용은 문서에 적지 않고** 암호화된 시나리오에서 관리한다.
 2. **상태 표기:** 각 항목에 `✅ 구현됨`, `🔲 계획`, `💡 아이디어` 중 하나를 붙인다.
 3. **새 기능 작업 순서:** 해당 문서에 `🔲 계획`으로 먼저 적음 → 코드 구현 → `✅ 구현됨`으로 변경 → [09_roadmap.md](09_roadmap.md) 갱신.
 4. **원본 기획서(`reference/`)는 수정하지 않는다.** 바뀐 결정은 주제별 문서에 기록한다.

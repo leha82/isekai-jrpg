@@ -3,3 +3,6 @@ Thumbs.db
 *.log
 node_modules/
 .claude/settings.local.json
+
+# 평문 시나리오 스크립트 — 절대 커밋하지 않는다 (암호화본은 scenario/ 에 커밋)
+scenario-src/

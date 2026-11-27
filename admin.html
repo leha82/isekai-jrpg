@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>스크립트 관리자 - 아르카디아 연대기</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<header>
+  <h1>📜 아르카디아 연대기 · 스크립트 관리자</h1>
+  <div class="header-right">
+    <span id="user-label"></span>
+    <button id="btn-login" class="btn" hidden>🔑 Google 로그인</button>
+    <button id="btn-logout" class="btn ghost" hidden>로그아웃</button>
+  </div>
+</header>
+
+<!-- 로그인·권한 확인 화면 -->
+<main id="gate">
+  <div class="gate-box">
+    <div id="gate-icon">⏳</div>
+    <p id="gate-msg">Firebase 연결 중...</p>
+  </div>
+</main>
+
+<!-- 마스터 전용 편집 화면 -->
+<main id="app" hidden>
+  <section id="token-panel" class="panel" hidden>
+    <h2>🔐 GitHub 토큰 설정</h2>
+    <p>암호화된 스크립트를 GitHub 저장소(<code id="repo-label"></code>)에 커밋하려면 토큰이 필요합니다.
+      토큰은 Firebase의 마스터 전용 문서에 보관되며, 다른 사람은 읽을 수 없습니다.</p>
+    <ol>
+      <li>GitHub → Settings → Developer settings → <b>Fine-grained personal access tokens</b> → Generate new token</li>
+      <li>Repository access: <b>Only select repositories</b> → 이 저장소만 선택</li>
+      <li>Permissions → Repository permissions → <b>Contents: Read and write</b></li>
+      <li>생성된 토큰(<code>github_pat_...</code>)을 아래에 붙여 넣기</li>
+    </ol>
+    <div class="row">
+      <input id="token-input" type="password" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+      <button id="btn-token-save" class="btn primary">저장 및 확인</button>
+      <button id="btn-token-cancel" class="btn ghost" hidden>취소</button>
+    </div>
+  </section>
+
+  <div id="workspace">
+    <aside id="files">
+      <div class="side-title">스크립트 파일</div>
+      <ul id="file-list"></ul>
+      <div class="file-actions">
+        <button id="btn-new" class="btn small">＋ 새 파일</button>
+        <button id="btn-rename" class="btn small">이름 변경</button>
+        <button id="btn-delete" class="btn small danger">삭제</button>
+      </div>
+      <div class="side-title">가져오기 / 내보내기</div>
+      <div class="file-actions">
+        <label class="btn small">📥 파일 가져오기<input id="import-files" type="file" accept=".script,.txt" multiple hidden></label>
+        <label class="btn small">📁 폴더 가져오기<input id="import-dir" type="file" webkitdirectory hidden></label>
+        <button id="btn-export" class="btn small">📤 현재 파일 내보내기</button>
+        <button id="btn-export-all" class="btn small">📤 전체 내보내기</button>
+      </div>
+      <div class="side-title">저장소</div>
+      <div id="repo-info" class="meta"></div>
+      <button id="btn-token-change" class="btn small ghost">GitHub 토큰 변경</button>
+      <button id="btn-reload" class="btn small ghost">↻ 저장소에서 다시 불러오기</button>
+    </aside>
+
+    <section id="editor-area">
+      <div id="editor-head">
+        <span id="current-file">파일 없음</span>
+        <span id="cursor-pos"></span>
+      </div>
+      <div id="editor-wrap">
+        <pre id="gutter">1</pre>
+        <textarea id="editor" spellcheck="false" wrap="off" disabled placeholder="왼쪽에서 파일을 고르거나 가져오세요."></textarea>
+      </div>
+    </section>
+
+    <aside id="side">
+      <div class="side-title">검사 결과 <span id="check-summary"></span></div>
+      <ul id="problems"></ul>
+      <details id="help" open>
+        <summary>문법 도움말</summary>
+        <div id="help-body"></div>
+      </details>
+    </aside>
+  </div>
+
+  <footer>
+    <span id="status">준비</span>
+    <div class="footer-actions">
+      <button id="btn-check" class="btn">🔍 검사</button>
+      <button id="btn-save" class="btn primary">🔒 암호화 저장 &amp; 업로드</button>
+    </div>
+  </footer>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/data/sprites.js"></script>
+<script src="js/data/world.js"></script>
+<script src="js/data/actors.js"></script>
+<script src="js/scenario/crypto.js"></script>
+<script src="js/scenario/format.js"></script>
+<script src="js/scenario/context.js"></script>
+<script type="module" src="js/admin/admin.js"></script>
+<script>
+  // module 스크립트(admin.js)를 불러오지 못하면(파일로 직접 열기, 오프라인) 원인을 안내한다.
+  window.addEventListener("load", function () {
+    if (window.adminApp) return;
+    document.getElementById("gate-icon").textContent = "⚠️";
+    document.getElementById("gate-msg").textContent = location.protocol === "file:"
+      ? "파일로 직접 열면 관리자 페이지가 동작하지 않습니다.\n배포 사이트(…/isekai-jrpg/admin.html) 또는 VS Code F5(localhost:8000/admin.html)에서 여세요."
+      : "Firebase SDK를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침하세요.";
+  });
+</script>
+</body>
+</html>

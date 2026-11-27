@@ -66,9 +66,9 @@
 
 ## 새 캐릭터 추가 체크리스트
 
-1. `SPRITES`에 16폭 도트 문자열 배열 추가 (팔레트 문자는 [08_tech.md](08_tech.md) 참고)
-2. `party` 배열에 `{ id, name, role, sprite, hp, maxHp, mp, maxMp, atk, matk, def, unlocked }` 추가
-3. 합류 이벤트를 `checkTileEvent()`에 추가
-4. `nextAllyTurn()`에 커맨드 버튼, `execSkill()`에 스킬 분기 추가
+1. `js/data/sprites.js`의 `SPRITES`에 16폭 도트 문자열 배열 추가 (팔레트 문자는 [08_tech.md](08_tech.md) 참고)
+2. `js/data/actors.js`의 `PARTY_DEFAULTS`에 `{ id, name, role, sprite, hp, maxHp, mp, maxMp, atk, matk, def, unlocked }` 추가
+3. 합류 이벤트는 시나리오 스크립트에서 `> join id` 로 작성 ([11_scenario.md](11_scenario.md))
+4. `js/systems/battle.js`의 `nextAllyTurn()`에 커맨드 버튼, `execSkill()`에 스킬 분기 추가
 5. 세이브 포맷은 `party`의 `id`로 매칭하므로 따로 수정할 필요 없음
 6. 이 문서와 [05_battle.md](05_battle.md)에 능력치와 스킬 기록

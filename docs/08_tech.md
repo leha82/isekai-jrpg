@@ -2,19 +2,50 @@
 
 ## 기술 스택
 
-- HTML5 / CSS3 / Vanilla JavaScript (ES6+), 단일 파일 `index.html`
+- HTML5 / CSS3 / Vanilla JavaScript (ES6+). 빌드 도구 없이 여러 `.js` 파일을 `<script>` 순서대로 불러온다 (전역 공유).
 - 그래픽: `<canvas>` 2D에 문자 배열 도트를 `fillRect`로 그림 (`image-rendering: pixelated`)
 - 사운드: Web Audio API Oscillator (square / triangle / sawtooth / sine)
 - 저장: `localStorage` + (선택) Firebase Firestore 클라우드 세이브
-- 외부 에셋·빌드 도구 없음. **예외: Firebase JS SDK 13.4.0**을 gstatic CDN에서 ES module로 불러온다. 이 SDK는 로그인·클라우드 저장에만 쓰이며, 불러오지 못해도 게임은 동작한다.
+- 시나리오: 암호화된 스크립트(`scenario/`) + Firebase 키 → 복호화 (WebCrypto AES-256-GCM). [11_scenario.md](11_scenario.md)
+- 외부 에셋 없음. **예외: Firebase JS SDK 13.4.0**을 gstatic CDN에서 ES module로 불러온다. 로그인·클라우드 세이브·**시나리오 키**에 쓰이므로, 이제 SDK를 불러오지 못하면 시나리오를 풀 수 없어 게임을 시작할 수 없다.
 
 ## 실행 & 디버깅
 
 | 방법 | 명령 |
 |---|---|
-| 파일로 열기 | `index.html` 더블클릭 |
-| 로컬 서버 | `python -m http.server 8000` → http://localhost:8000 |
-| VS Code | `Ctrl+Shift+B` (서버), `F5` (Edge/Chrome 디버그) |
+| VS Code | `F5` (서버 자동 실행 + Edge/Chrome 디버그), `Ctrl+Shift+B` (서버만) |
+| 로컬 서버 | `python -m http.server 8000` → http://localhost:8000 (관리자: `/admin.html`) |
+| 파일로 열기 | **동작하지 않음** — 시나리오 파일을 `fetch` 할 수 없고 Firebase 로그인도 불가 |
+
+## 파일 구조
+
+```
+index.html              게임 화면 (마크업 + 스크립트 로드 순서)
+admin.html              스크립트 관리자 (마스터 전용)
+css/game.css · admin.css
+js/config.js            Firebase 설정, MASTER_EMAIL, GitHub 저장소, 시나리오 폴더
+js/data/                sprites.js (PALETTE, SPRITES) · world.js (맵, 타일, 인카운트, START_POS) · actors.js (PARTY_DEFAULTS, ENEMIES, ITEMS)
+js/core/                state.js (gameState, player, party) · audio.js · ui.js (토스트, 대화창, 스케일링) · render.js
+js/scenario/            crypto.js (AES-GCM) · format.js (파서·검사기) · context.js (검사용 게임 데이터) · runtime.js (로드·장면 실행) ← 게임·관리자 공용(runtime 제외)
+js/systems/             shop.js · battle.js · save.js (로컬·클라우드 세이브, 로그인 UI)
+js/game/                input.js · main.js (startGame, bootScenario — 마지막 일반 스크립트)
+js/firebase/game-cloud.js   게임용 Firebase module → window.cloud
+js/admin/admin.js           관리자 module (Firebase + GitHub API)
+scenario/               암호화된 시나리오 (관리자 페이지가 커밋)
+scenario-src/           평문 시나리오 원본 (git 제외)
+firestore.rules         Firestore 보안 규칙 원본 (콘솔에 게시해야 적용)
+```
+
+### 스크립트 로드 순서 (`index.html`)
+`config → data/sprites → data/world → data/actors → core/state → core/audio → core/ui → core/render → scenario/crypto → scenario/format → scenario/context → scenario/runtime → systems/shop → systems/battle → systems/save → game/input → game/main → (module) firebase/game-cloud`
+
+- 일반 스크립트끼리는 전역(`let`/`const`/`function`)을 공유한다. 다른 파일의 함수는 **호출 시점**에만 정의되어 있으면 되므로, 순서는 "최상위에서 바로 실행되는 코드"가 쓰는 것만 맞추면 된다.
+- 새 파일을 추가하면 `index.html`(관리자에서도 쓰면 `admin.html`)의 `<script>` 목록과 이 표를 갱신한다.
+
+### 부팅 흐름
+1. `main.js` → `bootScenario()` : 타이틀 버튼 비활성화, "시나리오를 불러오는 중"
+2. `runtime.js` → `loadScenario()` : `scenario/manifest.json` + 암호 파일 받기 → `waitForCloud()` → `cloud.getScriptKey(keyId)` → 복호화 → `ScenarioFormat.parseAll` + `validate`
+3. 성공하면 `@text title_desc` 를 타이틀에 표시하고 버튼 활성화. 실패하면 원인과 `다시 시도` 버튼 표시
 
 ## 배포 (GitHub Pages) ✅
 
@@ -31,29 +62,34 @@
 - 배포 파일을 `index.html`만으로 제한하려면 Settings → Pages의 Source를 **GitHub Actions**로 바꾸고, `actions/upload-pages-artifact` + `actions/deploy-pages` 워크플로를 추가한다. 💡
 - 게임 세이브(`localStorage`)는 도메인 기준으로 저장된다. 로컬(`localhost`)과 배포 사이트의 세이브는 서로 공유되지 않는다.
 
-## index.html 코드 구조 (`<script>` 섹션 번호)
+## 주요 식별자 (파일별)
 
-| # | 섹션 | 주요 식별자 |
-|---|---|---|
-| 1 | 8비트 사운드 엔진 | `initAudio`, `playTone`, `SFX`, `setBGM`, `toggleAudio` |
-| 2 | 도트 스프라이트 | `PALETTE`, `SPRITES` |
-| 3 | 월드맵 | `MAP_W`, `MAP_H`, `WORLD_MAP`, `LOCATIONS` |
-| 4 | 게임 상태 | `gameState`, `player`, `party`, `currentEnemy` |
-| 5 | 렌더링 & HUD | `drawSprite`, `renderWorld`, `updateHUD` |
-| 6 | 상점 & 인벤토리 | `openTownShop`, `useInn`, `buyItem`, `upgradeGear`, `openInventory`, `useFieldItem` |
-| 7 | 스토리 & 이벤트 | `startDialog`, `advanceDialog`, `startGame`, `checkTileEvent` |
-| 8 | 턴제 전투 | `triggerRandomEncounter`, `startBattle`, `nextAllyTurn`, `execSkill`, `enemyTurn`, `checkLevelUp`, `endBattle`, `triggerEnding` |
-| 9 | 입력 처리 | `movePlayer`, `handleActionKey`, keydown 핸들러, 버튼 포커스 방지 |
-| 10 | 세이브/불러오기 | `SAVE_KEY`, `saveGame(isAuto, toCloud)`, `validateSave`, `readSave`, `writeLocalSave`, `applySaveData`, `manualSave`, `manualLoad`, `continueGame`, `refreshTitleContinue`, `showToast` |
-| 11 | 클라우드 세이브 | `cloudUser`, `cloudSaveCache`, `latestSave`, `refreshCloudCache`, `cloudSave`, `syncOnLogin`, `onCloudAuthChanged`, `updateAuthUI`, `toggleLogin` |
-| 12 | 반응형 스케일링 | `fitGameToScreen` |
-| 13 | Firebase SDK (`<script type="module">`) | `firebaseConfig`, `window.cloud = { signIn, signOut, load, save }` |
+| 파일 | 주요 식별자 |
+|---|---|
+| `core/audio.js` | `initAudio`, `playTone`, `SFX`, `setBGM`, `toggleAudio` |
+| `core/ui.js` | `showToast`, `startDialog`, `advanceDialog`, `fitGameToScreen` |
+| `core/render.js` | `drawSprite`, `renderWorld`, `updateHUD` |
+| `scenario/runtime.js` | `SCN`, `loadScenario`, `waitForCloud`, `runScene`, `runSteps`, `execScenarioCommand`, `checkTileEvent`, `scenarioQuestText`, `scenarioEventSprites`, `scnText`, `showEnding` |
+| `scenario/format.js` | `ScenarioFormat.parseAll / validate / evalCondition / COMMAND_HELP` |
+| `scenario/crypto.js` | `ScenarioCrypto.newKey / encryptText / decryptText` |
+| `systems/shop.js` | `openTownShop`, `applyGearUpgrade`, `useInn`, `buyItem`, `upgradeGear`, `openInventory`, `useFieldItem`, `closeModal` |
+| `systems/battle.js` | `triggerRandomEncounter`, `startBattle(enemyId, isBoss, winScene)`, `nextAllyTurn`, `execSkill`, `enemyTurn`, `checkLevelUp`, `endBattle` |
+| `systems/save.js` | `saveGame(isAuto, toCloud)`, `readSave`, `applySaveData`, `manualSave`, `manualLoad`, `continueGame`, `latestSave`, `cloudSave`, `onCloudAuthChanged`, `updateAuthUI`, `toggleLogin` |
+| `game/input.js` | `movePlayer`, `handleActionKey`, keydown 핸들러 |
+| `game/main.js` | `startGame`, `bootScenario` |
+| `firebase/game-cloud.js` | `window.cloud = { signIn, signOut, load, save, getScriptKey }`, `cloud-ready` 이벤트 |
 
-### 클라우드 세이브 연결 구조
+### Firebase 연결 구조
 
-- 게임 본체(일반 `<script>`)는 Firebase를 직접 import하지 않는다. 13번 module 스크립트가 SDK를 불러와 `window.cloud` 객체만 노출하고, `onAuthStateChanged` → `onCloudAuthChanged(user)`로 게임에 로그인 상태를 알린다.
+- 게임 본체(일반 `<script>`)는 Firebase를 직접 import하지 않는다. `game-cloud.js`(module)가 SDK를 불러와 `window.cloud` 객체만 노출하고, `cloud-ready` 이벤트를 보낸 뒤 `onAuthStateChanged` → `onCloudAuthChanged(user)`로 로그인 상태를 알린다.
 - module 스크립트는 지연 실행되므로 본체 함수가 모두 정의된 다음에 실행된다. SDK import가 실패하면 module 전체가 실행되지 않고, `load` 이벤트에서 `window.cloud`가 없음을 확인해 UI를 '사용 불가'로 바꾼다.
-- `firebaseConfig`(apiKey 포함)는 공개되는 식별자라 비밀이 아니다. 접근 제어는 [`firestore.rules`](../firestore.rules)가 담당한다. 규칙을 바꾸면 Firebase 콘솔 → Firestore → 규칙에 **다시 게시**해야 반영된다.
+- `FIREBASE_CONFIG`(apiKey 포함, `js/config.js`)는 공개되는 식별자라 비밀이 아니다. 접근 제어는 [`firestore.rules`](../firestore.rules)가 담당한다. 규칙을 바꾸면 Firebase 콘솔 → Firestore → 규칙에 **다시 게시**해야 반영된다.
+
+| Firestore 경로 | 읽기 | 쓰기 | 용도 |
+|---|---|---|---|
+| `saves/{uid}` | 본인 | 본인 (키 제한) | 클라우드 세이브 |
+| `scriptKeys/{keyId}` | 누구나 | 생성·삭제: 마스터 / 수정: 불가 | 시나리오 복호화 키 |
+| `admin/{doc}` | 마스터 | 마스터 | GitHub 토큰 (`admin/github`) |
 - Firestore 문서 `saves/{uid}`의 내용은 아래 세이브 데이터 포맷과 같다. 보안 규칙이 최상위 키를 `version, savedAt, player, inventory, party`로 제한하므로, **최상위 키를 추가하면 규칙도 함께 수정**해야 한다.
 
 ## 상태 머신 (`gameState`)
@@ -64,7 +100,7 @@ TITLE ──startGame/continueGame──▶ WORLD ◀─────────
                  이벤트 대화 ◀─────┘ │ └──▶ MODAL (상점/가방) ──닫기──┘
                  DIALOG ──종료──▶ WORLD    │
                                      └──▶ BATTLE ──승리/도망/전멸──▶ WORLD
-                                               └──보스 승리──▶ DIALOG ──▶ ENDING
+                                               └──win=장면 승리──▶ DIALOG ──▶ (> ending) ENDING
 ```
 
 | 값 | 의미 | 입력 |
@@ -145,4 +181,5 @@ let party = [ // 능력치는 멤버별로 관리
 ## 알려진 주의점
 
 - 마우스로 누른 버튼에 포커스가 남으면 Space 입력이 두 번 처리될 수 있다. 그래서 버튼의 `mousedown` 기본 동작을 막아 포커스가 가지 않게 했다.
-- 모든 UI 함수는 전역(`onclick="..."`)에서 호출된다. 파일을 모듈로 나눌 때는 `window`에 노출해야 한다.
+- 게임 UI 함수는 전역(`onclick="..."`)에서 호출된다. 일반 `<script>` 로 불러오는 이유이며, ES module 로 바꾸려면 `window`에 노출해야 한다.
+- 관리자 페이지가 GitHub 에 직접 커밋하므로, 로컬 작업 전에 `git pull` 한다.

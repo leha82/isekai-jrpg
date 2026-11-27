@@ -1,12 +1,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 로그인한 사용자는 자기 uid 문서(세이브 1개)만 읽고 쓸 수 있다.
+
+    // 스크립트 관리자(마스터). js/config.js 의 MASTER_EMAIL 과 반드시 같아야 한다.
+    function isMaster() {
+      return request.auth != null
+        && request.auth.token.email == "snowdrop.brandon@gmail.com"
+        && request.auth.token.email_verified == true;
+    }
+
+    // 클라우드 세이브: 로그인한 사용자는 자기 uid 문서(세이브 1개)만 읽고 쓸 수 있다.
     match /saves/{uid} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['version', 'savedAt', 'player', 'inventory', 'party']);
     }
+
+    // 시나리오 복호화 키: 게임이 스크립트를 풀어야 하므로 읽기는 누구나.
+    // 생성·삭제는 마스터만. 키는 바꾸지 않고 새로 만들어 교체한다(수정 금지).
+    match /scriptKeys/{keyId} {
+      allow read: if true;
+      allow create: if isMaster() && request.resource.data.keys().hasOnly(['key', 'createdAt', 'by']);
+      allow delete: if isMaster();
+      allow update: if false;
+    }
+
+    // 관리자 전용 (GitHub 토큰 등). 관리자 페이지는 이 문서 읽기로 서버 측 권한을 확인한다.
+    match /admin/{docId} {
+      allow read, write: if isMaster();
+    }
+
     // 그 밖의 경로는 모두 차단
     match /{document=**} {
       allow read, write: if false;
