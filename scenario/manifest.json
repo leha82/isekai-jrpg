@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "keyId": "k20261127093323-e4b81bbc",
+  "keyId": "k20261127174034-eff6ab0d",
   "files": [
     "00_system.script",
     "01_quests.script",
@@ -10,5 +10,5 @@
     "40_north.script",
     "90_finale.script"
   ],
-  "updatedAt": "2026-11-27T15:52:48.084631Z"
+  "updatedAt": "2026-11-27T17:40:34.668Z"
 }
