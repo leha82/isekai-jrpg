@@ -87,14 +87,14 @@
 | 5-1 | Google 로그인 클라우드 세이브 | [07_systems.md](07_systems.md) | ✅ 2026-11-27 |
 | 6 | 맵 스크롤·다양한 크기의 맵 | [02_world.md](02_world.md) | ✅ 2026-11-27 |
 | 7 | 코드 분리 + 암호화 시나리오 + 관리자 페이지 | [08_tech.md](08_tech.md), [11_scenario.md](11_scenario.md) | ✅ 2026-11-27 |
-| 7-1 | 최신 `firestore.rules` 게시 (관리자 지정 기능) + 관리자 페이지에서 시나리오 한 번 저장 (키 교체) | [10_firebase_setup.md](10_firebase_setup.md) | 🔲 사용자 진행 |
+| 7-1 | 최신 `firestore.rules` 게시 (관리자 지정 기능) + 관리자 페이지에서 시나리오 한 번 저장 (키 교체) | [10_firebase_setup.md](10_firebase_setup.md) | ✅ 2026-11-28 |
 | 8 | 맵·캐릭터·몬스터·스킬·아이템을 관리자 페이지에서 편집 | [13_admin.md](13_admin.md) | ✅ 2026-11-27 |
 | 9 | 관리자 페이지에서 스프라이트 픽셀 직접 편집 | [13_admin.md](13_admin.md) | 💡 |
 | 10 | 모바일 터치 전투 개선 (적 직접 터치로 대상 선택) | [05_battle.md](05_battle.md) | 💡 |
 | 11 | AI NPC 자동 대화 (시나리오에서 AI NPC 지정, 대화 입력창) | [14_ai.md](14_ai.md) | 🔲 |
 | 12 | 광고 실제 연결 (AdSense 승인 후 `#ad-slot` 에 코드 삽입) | [07_systems.md](07_systems.md) | 🔲 |
 | 13 | 관리자 페이지의 `alert`/`confirm` 도 자체 창으로 교체 | [13_admin.md](13_admin.md) | 💡 |
-| 14 | 최신 `firestore.rules` 게시 (플레이어 ID `players/{uid}`) + 관리자 페이지에서 시나리오 한 번 저장 (키 교체) | [10_firebase_setup.md](10_firebase_setup.md) | 🔲 사용자 진행 |
+| 14 | 최신 `firestore.rules` 게시 (플레이어 ID `players/{uid}`) + 관리자 페이지에서 시나리오 한 번 저장 (키 교체) | [10_firebase_setup.md](10_firebase_setup.md) | ✅ 2026-11-28 |
 | 15 | 장비 판매(되팔기)·더 많은 장비, 장비 상한 | [07_systems.md](07_systems.md) | 💡 |
 | 16 | 모바일 실제 기기에서 세로/가로 모드·가상 패드 위치 점검 | [07_systems.md](07_systems.md) | 🔲 |
 

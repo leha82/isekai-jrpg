@@ -122,11 +122,12 @@ const firebaseConfig = {
 - [x] Firestore `(default)` DB 생성, 프로덕션 모드 (비로그인 접근 차단 확인)
 - [x] 보안 규칙 게시
 - [x] 세이브 슬롯 규칙(`saves/{uid}/slots`) 재게시 (2026-11-27, 사용자 확인)
-- [ ] 플레이어 ID 규칙(`players/{uid}`) 재게시 (2026-11-28 추가 — 사용자 진행 필요)
+- [x] 플레이어 ID 규칙(`players/{uid}`) 재게시 (2026-11-28, 사용자 확인)
 - [x] 웹 앱 등록 후 `firebaseConfig` 전달 → 코드 연결 완료
 - [x] (시나리오) `firestore.rules` 게시 (2026-11-27 확인)
 - [x] (시나리오) 관리자 페이지에서 GitHub 토큰 설정 + 첫 업로드 (커밋 fb552c4)
-- [ ] (관리자 지정) 최신 `firestore.rules` 다시 게시 — `isAdmin()`·`config/admins` 추가됨
+- [x] (관리자 지정) 최신 `firestore.rules` 다시 게시 — `isAdmin()`·`config/admins` 추가됨 (2026-11-28, 전체 규칙 게시로 함께 적용)
+- [x] 시나리오 키 교체 (2026-11-28, 관리자 페이지 저장 → 키 `k20261127174034-eff6ab0d`, 커밋 38a8ccb)
 
 ## 문제 해결
 로그인에 실패하면 게임 화면에 원인 토스트가 뜨고, F12 콘솔에 `[로그인 실패] <코드>`가 기록된다.
